@@ -5,6 +5,7 @@ import org.example.cloudstorage.dto.UserDetailsDto;
 import org.example.cloudstorage.dto.request.UserReqDto;
 import org.example.cloudstorage.entity.Role;
 import org.example.cloudstorage.entity.User;
+import org.example.cloudstorage.exception.UserAlreadyExistsException;
 import org.example.cloudstorage.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,6 +21,11 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     public User registration(UserReqDto userReqDto) {
+
+        userRepository.findByUsername(userReqDto.username())
+                .ifPresent(user ->
+                {throw new UserAlreadyExistsException("User with username " + userReqDto.username() + " already exists");}
+                );
 
         var user = User.builder()
                 .username(userReqDto.username())
