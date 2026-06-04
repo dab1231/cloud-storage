@@ -2,7 +2,7 @@ package org.example.cloudstorage.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.dto.UserDetailsDto;
-import org.example.cloudstorage.dto.UserDto;
+import org.example.cloudstorage.dto.request.UserReqDto;
 import org.example.cloudstorage.entity.Role;
 import org.example.cloudstorage.entity.User;
 import org.example.cloudstorage.repository.UserRepository;
@@ -19,15 +19,15 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void registration(UserDto userDto) {
+    public User registration(UserReqDto userReqDto) {
 
         var user = User.builder()
-                .username(userDto.username())
-                .password(passwordEncoder.encode(userDto.password()))
+                .username(userReqDto.username())
+                .password(passwordEncoder.encode(userReqDto.password()))
                 .role(Role.USER)
                 .build();
 
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     @Override
