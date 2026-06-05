@@ -2,7 +2,8 @@ package org.example.cloudstorage.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.dto.UserDetailsDto;
-import org.example.cloudstorage.dto.request.UserReqDto;
+import org.example.cloudstorage.dto.request.UserRequest;
+import org.example.cloudstorage.dto.response.UserResponse;
 import org.example.cloudstorage.entity.Role;
 import org.example.cloudstorage.entity.User;
 import org.example.cloudstorage.exception.UserAlreadyExistsException;
@@ -20,20 +21,24 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User registration(UserReqDto userReqDto) {
+    public UserResponse registration(UserRequest userRequest) {
 
-        userRepository.findByUsername(userReqDto.username())
+        userRepository.findByUsername(userRequest.username())
                 .ifPresent(user ->
-                {throw new UserAlreadyExistsException("User with username " + userReqDto.username() + " already exists");}
+                {throw new UserAlreadyExistsException("User with username " + userRequest.username() + " already exists");}
                 );
 
         var user = User.builder()
-                .username(userReqDto.username())
-                .password(passwordEncoder.encode(userReqDto.password()))
+                .username(userRequest.username())
+                .password(passwordEncoder.encode(userRequest.password()))
                 .role(Role.USER)
                 .build();
 
-        return userRepository.save(user);
+        var savedUser = userRepository.save(user);
+
+        return UserResponse.builder()
+                .username(savedUser.getUsername())
+                .build();
     }
 
     @Override
