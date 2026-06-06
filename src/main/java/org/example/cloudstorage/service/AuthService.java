@@ -1,0 +1,48 @@
+package org.example.cloudstorage.service;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.example.cloudstorage.dto.request.UserRequest;
+import org.example.cloudstorage.dto.response.UserResponse;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
+
+@RequiredArgsConstructor
+@Service
+public class AuthService {
+
+    private final AuthenticationManager authenticationManager;
+    private final UserService userService;
+
+    public UserResponse registration(UserRequest userRequest, HttpServletRequest request) {
+
+        var userResponse = userService.registration(userRequest);
+
+        createAndSaveSecurityContext(userRequest, request);
+
+        return userResponse;
+    }
+
+    public UserResponse login(UserRequest userRequest, HttpServletRequest request) {
+
+        createAndSaveSecurityContext(userRequest, request);
+        return new UserResponse(userRequest.username());
+    }
+
+    private void createAndSaveSecurityContext(UserRequest userRequest, HttpServletRequest request) {
+        Authentication authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(
+                userRequest.username(), userRequest.password());
+
+        Authentication authenticationResponse = authenticationManager.authenticate(authenticationRequest);
+        var context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authenticationResponse);
+        SecurityContextHolder.setContext(context);
+        var session = request.getSession(true);
+        session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, context);
+    }
+}
