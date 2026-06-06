@@ -2,6 +2,7 @@ package org.example.cloudstorage.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,8 +26,16 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs",
+                                "/v3/api-docs/**").permitAll()
+                        .anyRequest().authenticated())
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/sign-out")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(HttpStatus.NO_CONTENT.value());
+                        })
                 );
+
         return http.build();
     }
 

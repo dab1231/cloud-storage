@@ -1,6 +1,5 @@
 package org.example.cloudstorage.entity;
 
-import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 
 public enum Role implements GrantedAuthority {
@@ -9,7 +8,7 @@ public enum Role implements GrantedAuthority {
 
 
     @Override
-    public @NonNull String getAuthority() {
+    public String getAuthority() {
         return "ROLE_" + name();
     }
 }

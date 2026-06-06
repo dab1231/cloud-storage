@@ -2,7 +2,6 @@ package org.example.cloudstorage.dto;
 
 import lombok.AllArgsConstructor;
 import org.example.cloudstorage.entity.Role;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -21,7 +20,7 @@ public class UserDetailsDto implements UserDetails {
     }
 
     @Override
-    public @Nullable String getPassword() {
+    public String getPassword() {
         return password;
     }
 
