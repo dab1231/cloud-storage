@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -33,8 +35,10 @@ public class AuthController {
                 userRequest.username(), userRequest.password());
 
         Authentication authenticationResponse = authenticationManager.authenticate(authenticationRequest);
-        SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
-        request.getSession(true);
+        var context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authenticationResponse);
+        var session = request.getSession(true);
+        session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, context);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new UserResponse(user.username()));
@@ -47,8 +51,10 @@ public class AuthController {
                 userRequest.username(), userRequest.password());
 
         Authentication authenticationResponse = authenticationManager.authenticate(authenticationRequest);
-        SecurityContextHolder.getContext().setAuthentication(authenticationResponse);
-        request.getSession(true);
+        var context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authenticationResponse);
+        var session = request.getSession(true);
+        session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, context);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new UserResponse(authenticationResponse.getName()));
