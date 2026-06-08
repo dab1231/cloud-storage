@@ -1,5 +1,8 @@
 package org.example.cloudstorage.config;
 
+import lombok.RequiredArgsConstructor;
+import org.example.cloudstorage.security.CustomAccessDeniedHandler;
+import org.example.cloudstorage.security.CustomAuthEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -12,7 +15,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration {
+
+    private final CustomAuthEntryPoint customAuthEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -29,6 +36,10 @@ public class SecurityConfiguration {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs",
                                 "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(customAuthEntryPoint)
+                                .accessDeniedHandler(customAccessDeniedHandler)
+                )
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/sign-out")
                         .logoutSuccessHandler((request, response, authentication) -> {
