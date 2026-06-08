@@ -1,5 +1,7 @@
 package org.example.cloudstorage.dto.response;
 
+import java.util.List;
+
 public record ErrorResponse(
-        String message) {
+        List<String> message) {
 }

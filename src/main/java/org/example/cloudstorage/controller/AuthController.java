@@ -7,6 +7,7 @@ import org.example.cloudstorage.dto.response.UserResponse;
 import org.example.cloudstorage.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +21,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/sign-up")
-    public ResponseEntity<UserResponse> registration(@RequestBody UserRequest userRequest,
+    public ResponseEntity<UserResponse> registration(@RequestBody @Validated UserRequest userRequest,
                                                      HttpServletRequest request) {
 
         var userResponse = authService.registration(userRequest,  request);
@@ -30,7 +31,7 @@ public class AuthController {
     }
 
     @PostMapping("/sign-in")
-    public ResponseEntity<UserResponse> login(@RequestBody UserRequest userRequest, HttpServletRequest request) {
+    public ResponseEntity<UserResponse> login(@RequestBody @Validated UserRequest userRequest, HttpServletRequest request) {
 
         var userResponse = authService.login(userRequest, request);
 
