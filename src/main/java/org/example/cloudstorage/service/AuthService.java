@@ -2,6 +2,7 @@ package org.example.cloudstorage.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.request.UserRequest;
 import org.example.cloudstorage.dto.response.UserResponse;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class AuthService {
@@ -25,12 +27,14 @@ public class AuthService {
 
         createAndSaveSecurityContext(userRequest, request);
 
+        log.info("User {} was registered", userResponse.username());
         return userResponse;
     }
 
     public UserResponse login(UserRequest userRequest, HttpServletRequest request) {
 
         createAndSaveSecurityContext(userRequest, request);
+        log.info("User with login {} was authorized", userRequest.username());
         return new UserResponse(userRequest.username());
     }
 

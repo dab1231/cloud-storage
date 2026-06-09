@@ -1,6 +1,8 @@
-package org.example.cloudstorage.exception;
+package org.example.cloudstorage.handler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.response.ErrorResponse;
+import org.example.cloudstorage.exception.UserAlreadyExistsException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -23,6 +26,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException e) {
 
         var errorMessage = e.getMessage();
+        log.warn(errorMessage);
         return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.CONFLICT);
     }
 
@@ -30,6 +34,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
 
         var errorMessage = e.getMessage();
+        log.warn(errorMessage);
         return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.UNAUTHORIZED);
     }
 
@@ -37,6 +42,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
         List<String> errorMessages = ex.getBindingResult().getFieldErrors().stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage).toList();
+
+        for (String message : errorMessages) {
+            log.warn(message);
+        }
         return new ResponseEntity<>(new ErrorResponse(errorMessages), HttpStatus.BAD_REQUEST);
     }
 }

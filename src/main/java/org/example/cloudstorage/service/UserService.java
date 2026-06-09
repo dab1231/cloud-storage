@@ -1,6 +1,7 @@
 package org.example.cloudstorage.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.request.UserRequest;
 import org.example.cloudstorage.dto.response.UserResponse;
 import org.example.cloudstorage.entity.Role;
@@ -10,6 +11,7 @@ import org.example.cloudstorage.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserService {
