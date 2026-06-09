@@ -1,6 +1,7 @@
 package org.example.cloudstorage.integration.service;
 
 import org.example.cloudstorage.dto.request.UserRequest;
+import org.example.cloudstorage.exception.UserAlreadyExistsException;
 import org.example.cloudstorage.repository.UserRepository;
 import org.example.cloudstorage.service.UserService;
 import org.junit.jupiter.api.AfterAll;
@@ -13,8 +14,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class UserServiceTest {
@@ -64,5 +64,15 @@ class UserServiceTest {
 
         assertTrue(actualUser.isPresent());
         actualUser.ifPresent(actual -> assertEquals(USERNAME, actual.getUsername()));
+    }
+
+    @Test
+    void throwExceptionIfUserAlreadyExists() {
+
+        var user = new UserRequest(USERNAME, PASSWORD);
+        userService.registration(user);
+
+        assertThrows(UserAlreadyExistsException.class, () ->
+                userService.registration(user));
     }
 }
