@@ -6,10 +6,7 @@ import org.example.cloudstorage.dto.response.ResourceResponse;
 import org.example.cloudstorage.service.MinioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,5 +21,13 @@ public class ResourceController {
         var info = minioService.getInfo(path);
 
         return new ResponseEntity<>(info, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/resource")
+    public ResponseEntity<Object> deleteResource(@RequestParam String path) throws MinioException {
+
+        minioService.deleteResource(path);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

@@ -5,6 +5,7 @@ import io.minio.errors.MinioException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.response.ErrorResponse;
 import org.example.cloudstorage.exception.InvalidPathException;
+import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.example.cloudstorage.exception.UserAlreadyExistsException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -75,6 +76,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             log.warn(errorMessage);
             return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e) {
+
+        var errorMessage = e.getMessage();
+        log.warn(errorMessage);
+        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MinioException.class)

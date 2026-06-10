@@ -9,6 +9,7 @@ import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.FileResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
 import org.example.cloudstorage.exception.InvalidPathException;
+import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,26 +21,38 @@ import java.util.List;
 @Service
 public class MinioService {
 
+    private final MinioClient minioClient;
+
     @Value("${minio.bucket-name}")
     private String bucketName;
-    private final MinioClient minioClient;
 
     public ResourceResponse getInfo(String path) throws MinioException {
 
         ifPathInvalidThrowException(path);
 
-        var statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
-                .bucket(bucketName)
-                .object(path)
-                .build());
-
         if (path.endsWith("/")) {
-            return new DirectoryResponse(
-                    getPath(statObjectResponse.object()),
-                    getName(path),
-                    "DIRECTORY"
-            );
+
+            var results = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(bucketName)
+                    .prefix(path)
+                    .build());
+
+            if (!results.iterator().hasNext()) {
+                throw new ResourceNotFoundException("Resource not found");
+            } else {
+                return new DirectoryResponse(
+                        getPath(path),
+                        getName(path),
+                        "DIRECTORY"
+                );
+            }
+
         } else {
+            var statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(path)
+                    .build());
+
             return new FileResponse(
                     getPath(statObjectResponse.object()),
                     getName(path),
@@ -47,7 +60,6 @@ public class MinioService {
                     "FILE"
             );
         }
-
     }
 
     public void deleteResource(String path) throws MinioException {
@@ -55,15 +67,21 @@ public class MinioService {
         ifPathInvalidThrowException(path);
 
         if (path.endsWith("/")) {
+
             var results = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(bucketName)
                     .prefix(path)
                     .recursive(true)
                     .build());
 
+
             List<DeleteRequest.Object> deleteList = new ArrayList<>();
             for (var itemResult : results) {
                 deleteList.add(new DeleteRequest.Object(itemResult.get().objectName()));
+            }
+
+            if (deleteList.isEmpty()) {
+                throw new ResourceNotFoundException("Resource not found");
             }
 
             var deleteResult = minioClient.removeObjects(RemoveObjectsArgs.builder()
@@ -81,7 +99,6 @@ public class MinioService {
                     .object(path)
                     .build());
         }
-
     }
 
     private static void ifPathInvalidThrowException(String path) {
@@ -93,11 +110,7 @@ public class MinioService {
     private String getName(String path) {
         String name;
         var split = path.split("/");
-        if (path.endsWith("/")) {
-            name = split[split.length - 2];
-        } else {
-            name = split[split.length - 1];
-        }
+        name = split[split.length - 1];
         return name;
     }
 
@@ -112,7 +125,5 @@ public class MinioService {
             var index = path.lastIndexOf('/');
             return path.substring(0, index + 1);
         }
-
-
     }
 }
