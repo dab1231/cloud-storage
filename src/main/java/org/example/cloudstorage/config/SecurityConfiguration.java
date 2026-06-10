@@ -1,8 +1,8 @@
 package org.example.cloudstorage.config;
 
 import lombok.RequiredArgsConstructor;
-import org.example.cloudstorage.handler.CustomAccessDeniedHandler;
-import org.example.cloudstorage.handler.CustomAuthEntryPoint;
+import org.example.cloudstorage.security.handler.CustomAccessDeniedHandler;
+import org.example.cloudstorage.security.handler.CustomAuthEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package org.example.cloudstorage.dto;
+package org.example.cloudstorage.security;
 
 import lombok.AllArgsConstructor;
 import org.example.cloudstorage.entity.Role;

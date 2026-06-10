@@ -1,7 +1,6 @@
 package org.example.cloudstorage.security;
 
 import lombok.RequiredArgsConstructor;
-import org.example.cloudstorage.dto.UserDetailsDto;
 import org.example.cloudstorage.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

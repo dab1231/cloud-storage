@@ -1,4 +1,4 @@
-package org.example.cloudstorage.handler;
+package org.example.cloudstorage.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;

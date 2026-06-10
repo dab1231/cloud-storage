@@ -6,7 +6,8 @@ import io.minio.errors.MinioException;
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.FileResponse;
-import org.example.cloudstorage.dto.response.MinioRespImpl;
+import org.example.cloudstorage.dto.response.ResourceResponse;
+import org.example.cloudstorage.exception.InvalidPathException;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -15,7 +16,11 @@ public class MinioService {
 
     private final MinioClient minioClient;
 
-    public MinioRespImpl getInfo(String path) throws MinioException {
+    public ResourceResponse getInfo(String path) throws MinioException {
+
+        if (path.isBlank() || path.contains("..")) {
+            throw new InvalidPathException("Path must not be blank or contain '..'");
+        }
 
         var statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
                 .bucket("user-files")

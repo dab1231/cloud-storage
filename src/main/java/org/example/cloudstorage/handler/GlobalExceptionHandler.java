@@ -1,7 +1,10 @@
 package org.example.cloudstorage.handler;
 
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.MinioException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.response.ErrorResponse;
+import org.example.cloudstorage.exception.InvalidPathException;
 import org.example.cloudstorage.exception.UserAlreadyExistsException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -17,6 +20,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestControllerAdvice
@@ -47,5 +51,37 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             log.warn(message);
         }
         return new ResponseEntity<>(new ErrorResponse(errorMessages), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidPathException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPathException(InvalidPathException e) {
+
+        var errorMessage = e.getMessage();
+        log.warn(errorMessage);
+        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ErrorResponseException.class)
+    public ResponseEntity<ErrorResponse> handleErrorResponseException(ErrorResponseException e) {
+
+        if (Objects.equals(e.errorResponse().code(), "NoSuchKey")) {
+
+            var errorMessage = e.getMessage();
+            log.warn(errorMessage);
+            return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.NOT_FOUND);
+        } else {
+
+            var errorMessage = e.getMessage();
+            log.warn(errorMessage);
+            return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ExceptionHandler(MinioException.class)
+    public ResponseEntity<ErrorResponse> handleMinioException(MinioException e) {
+
+        var errorMessage = e.getMessage();
+        log.warn(errorMessage);
+        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
