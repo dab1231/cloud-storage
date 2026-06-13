@@ -36,7 +36,7 @@ public class ResourceController {
     }
 
     @GetMapping("/resource/download")
-    public ResponseEntity<StreamingResponseBody> downloadResource(@RequestParam String path) throws MinioException, IOException {
+    public ResponseEntity<StreamingResponseBody> downloadResource(@RequestParam String path) throws MinioException {
 
         if (path.endsWith("/")) {
 
@@ -75,5 +75,13 @@ public class ResourceController {
                     });
 
         }
+    }
+
+    @GetMapping("/resource/move")
+    public ResponseEntity<ResourceResponse> moveResource(@RequestParam String from, @RequestParam String to) throws MinioException {
+
+        var resourceResponse = minioService.moveResource(from, to);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(resourceResponse);
     }
 }

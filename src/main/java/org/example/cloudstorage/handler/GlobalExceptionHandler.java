@@ -5,6 +5,7 @@ import io.minio.errors.MinioException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.response.ErrorResponse;
 import org.example.cloudstorage.exception.InvalidPathException;
+import org.example.cloudstorage.exception.ResourceAlreadyExistsException;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.example.cloudstorage.exception.UserAlreadyExistsException;
 import org.jspecify.annotations.NonNull;
@@ -27,8 +28,8 @@ import java.util.Objects;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException e) {
+    @ExceptionHandler({UserAlreadyExistsException.class, ResourceAlreadyExistsException.class})
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(Exception e) {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);

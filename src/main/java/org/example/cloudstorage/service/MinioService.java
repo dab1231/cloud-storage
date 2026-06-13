@@ -1,6 +1,7 @@
 package org.example.cloudstorage.service;
 
 import io.minio.*;
+import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
 import io.minio.messages.DeleteRequest;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.FileResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
 import org.example.cloudstorage.exception.InvalidPathException;
+import org.example.cloudstorage.exception.ResourceAlreadyExistsException;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -149,9 +152,77 @@ public class MinioService {
         zipOutputStream.close();
     }
 
+    public ResourceResponse moveResource(String from, String to) throws MinioException {
+
+        ifPathInvalidThrowException(from, to);
+
+        if (from.endsWith("/")) {
+            var results = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(bucketName)
+                    .prefix(to)
+                    .build());
+
+            if (results.iterator().hasNext()) {
+                throw new ResourceAlreadyExistsException("Resource with name: " + to + " already exists");
+            }
+
+            var objects = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(bucketName)
+                    .prefix(from)
+                    .recursive(true)
+                    .build());
+
+            for(var object : objects) {
+                minioClient.copyObject(CopyObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(to + object.get().objectName().substring(from.length()))
+                                .source(SourceObject.builder()
+                                        .bucket(bucketName)
+                                        .object(object.get().objectName())
+                                        .build())
+                        .build());
+            }
+
+        } else {
+
+            try {
+                minioClient.statObject(StatObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(to)
+                        .build());
+                throw new ResourceAlreadyExistsException("Resource with name: " + to + " already exists");
+
+            } catch (ErrorResponseException e) {
+                if (!Objects.equals(e.errorResponse().code(), "NoSuchKey")) {
+                    throw e;
+                }
+            }
+
+            minioClient.copyObject(CopyObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(to)
+                    .source(SourceObject.builder()
+                            .bucket(bucketName)
+                            .object(from)
+                            .build())
+                    .build());
+
+        }
+        deleteResource(from);
+        return getInfo(to);
+    }
+
     private static void ifPathInvalidThrowException(String path) {
         if (path.isBlank() || path.contains("..")) {
             throw new InvalidPathException("Path must not be blank or contain '..'");
+        }
+    }
+
+    private static void ifPathInvalidThrowException(String from, String to) {
+        if (from.isBlank() || from.contains("..") || to.isBlank() || to.contains("..") ||
+                from.equals(to) || (from.endsWith("/") && !to.endsWith("/")) ||
+                (to.endsWith("/") && !from.endsWith("/"))) {
+            throw new InvalidPathException("Invalid path to or from");
         }
     }
 
