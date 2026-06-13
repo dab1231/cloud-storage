@@ -84,4 +84,13 @@ public class ResourceController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(resourceResponse);
     }
+
+    @PostMapping("/directory")
+    public ResponseEntity<DirectoryResponse> createDirectory(@RequestParam String path) throws MinioException {
+
+        var directory = minioService.createDirectory(path);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(directory);
+    }
 }

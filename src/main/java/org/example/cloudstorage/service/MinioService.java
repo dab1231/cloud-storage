@@ -16,6 +16,7 @@ import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -172,14 +173,14 @@ public class MinioService {
                     .recursive(true)
                     .build());
 
-            for(var object : objects) {
+            for (var object : objects) {
                 minioClient.copyObject(CopyObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(to + object.get().objectName().substring(from.length()))
+                        .source(SourceObject.builder()
                                 .bucket(bucketName)
-                                .object(to + object.get().objectName().substring(from.length()))
-                                .source(SourceObject.builder()
-                                        .bucket(bucketName)
-                                        .object(object.get().objectName())
-                                        .build())
+                                .object(object.get().objectName())
+                                .build())
                         .build());
             }
 
@@ -210,6 +211,41 @@ public class MinioService {
         }
         deleteResource(from);
         return getInfo(to);
+    }
+
+    public DirectoryResponse createDirectory(String path) throws MinioException {
+        if (path.isBlank() || path.contains("..") || !path.endsWith("/")) {
+            throw new InvalidPathException("Path must not be blank or contain '..'");
+        }
+
+        var results = minioClient.listObjects(ListObjectsArgs.builder()
+                .bucket(bucketName)
+                .prefix(path)
+                .build());
+
+        if (results.iterator().hasNext()) {
+            throw new ResourceAlreadyExistsException("Resource already exists");
+        }
+
+        var parentPath = getPath(path);
+        if (!parentPath.isEmpty()) {
+            var parentResults = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(bucketName)
+                    .prefix(parentPath)
+                    .build());
+            if (!parentResults.iterator().hasNext()) {
+                throw new ResourceNotFoundException("Parent directory was not found");
+            }
+        }
+
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(path).stream(
+                                new ByteArrayInputStream(new byte[]{}), 0L, -1L)
+                        .build());
+
+        return (DirectoryResponse) getInfo(path);
     }
 
     private static void ifPathInvalidThrowException(String path) {
