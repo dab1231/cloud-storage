@@ -10,11 +10,13 @@ import org.example.cloudstorage.dto.download.DownloadedFile;
 import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.FileResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
+import org.example.cloudstorage.exception.InvalidBodyException;
 import org.example.cloudstorage.exception.InvalidPathException;
 import org.example.cloudstorage.exception.ResourceAlreadyExistsException;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -263,7 +265,7 @@ public class MinioService {
             if (getName(itemResult.get().objectName().toLowerCase(Locale.ROOT)).contains(query.toLowerCase(Locale.ROOT))) {
                 var path = itemResult.get().objectName();
 
-                if(path.endsWith("/")) {
+                if (path.endsWith("/")) {
                     resultList.add(
                             new DirectoryResponse(
                                     getPath(path),
@@ -282,6 +284,51 @@ public class MinioService {
             }
         }
         return resultList;
+    }
+
+    public List<ResourceResponse> uploadFiles(List<MultipartFile> files, String path) throws MinioException, IOException {
+
+        if (path.isBlank() || path.contains("..") || !path.endsWith("/")) {
+            throw new InvalidPathException("Directory path must not be blank, must not contain '..', and must end with '/'");
+        }
+
+        if (files.isEmpty()) {
+            throw new InvalidBodyException("Invalid request body");
+        }
+        List<ResourceResponse> resourceResponses = new ArrayList<>();
+        for (MultipartFile file : files) {
+
+            var originalFilename = path.concat(Objects.requireNonNull(file.getOriginalFilename()));
+
+            try {
+                minioClient.statObject(StatObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(originalFilename)
+                        .build());
+                throw new ResourceAlreadyExistsException("Resource with name: " + originalFilename + " already exists");
+
+            } catch (ErrorResponseException e) {
+                if (!Objects.equals(e.errorResponse().code(), "NoSuchKey")) {
+                    throw e;
+                }
+            }
+
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(originalFilename)
+                    .stream(file.getInputStream(), file.getSize(), -1L)
+                    .contentType(file.getContentType())
+                    .build());
+
+            resourceResponses.add(new FileResponse(
+                    getPath(originalFilename),
+                    getName(originalFilename),
+                    file.getSize(),
+                    "FILE"
+            ));
+        }
+
+        return resourceResponses;
     }
 
     private static void ifPathInvalidThrowException(String path) {

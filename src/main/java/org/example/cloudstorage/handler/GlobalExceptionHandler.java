@@ -4,10 +4,7 @@ import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.response.ErrorResponse;
-import org.example.cloudstorage.exception.InvalidPathException;
-import org.example.cloudstorage.exception.ResourceAlreadyExistsException;
-import org.example.cloudstorage.exception.ResourceNotFoundException;
-import org.example.cloudstorage.exception.UserAlreadyExistsException;
+import org.example.cloudstorage.exception.*;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -28,7 +25,10 @@ import java.util.Objects;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler({UserAlreadyExistsException.class, ResourceAlreadyExistsException.class})
+    @ExceptionHandler({
+            UserAlreadyExistsException.class,
+            ResourceAlreadyExistsException.class,
+    })
     public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(Exception e) {
 
         var errorMessage = e.getMessage();
@@ -53,6 +53,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             log.warn(message);
         }
         return new ResponseEntity<>(new ErrorResponse(errorMessages), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidBodyException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidBodyException(InvalidBodyException e) {
+
+        var errorMessage = e.getMessage();
+        log.warn(errorMessage);
+        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidPathException.class)
@@ -89,6 +97,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MinioException.class)
     public ResponseEntity<ErrorResponse> handleMinioException(MinioException e) {
+
+        var errorMessage = e.getMessage();
+        log.warn(errorMessage);
+        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);

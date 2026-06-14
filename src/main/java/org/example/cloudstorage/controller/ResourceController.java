@@ -8,6 +8,7 @@ import org.example.cloudstorage.dto.response.ResourceResponse;
 import org.example.cloudstorage.service.MinioService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
@@ -102,5 +103,14 @@ public class ResourceController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(resourceResponses);
+    }
+
+    @PostMapping("/resource")
+    public ResponseEntity<List<ResourceResponse>> uploadFiles(@RequestParam("object")List<MultipartFile> files, @RequestParam String path) throws MinioException, IOException {
+
+        var fileResponses = minioService.uploadFiles(files, path);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(fileResponses);
     }
 }
