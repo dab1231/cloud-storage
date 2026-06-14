@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -92,5 +93,14 @@ public class ResourceController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(directory);
+    }
+
+    @GetMapping("/resource/search")
+    public ResponseEntity<List<ResourceResponse>> searchResources(@RequestParam String query) throws MinioException {
+
+        var resourceResponses = minioService.searchResources(query);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(resourceResponses);
     }
 }

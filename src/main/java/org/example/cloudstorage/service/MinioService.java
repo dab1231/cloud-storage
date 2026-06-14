@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -215,7 +216,7 @@ public class MinioService {
 
     public DirectoryResponse createDirectory(String path) throws MinioException {
         if (path.isBlank() || path.contains("..") || !path.endsWith("/")) {
-            throw new InvalidPathException("Path must not be blank or contain '..'");
+            throw new InvalidPathException("Directory path must not be blank, must not contain '..', and must end with '/'");
         }
 
         var results = minioClient.listObjects(ListObjectsArgs.builder()
@@ -246,6 +247,41 @@ public class MinioService {
                         .build());
 
         return (DirectoryResponse) getInfo(path);
+    }
+
+    public List<ResourceResponse> searchResources(String query) throws MinioException {
+        ifPathInvalidThrowException(query);
+
+        var results = minioClient.listObjects(ListObjectsArgs.builder()
+                .bucket(bucketName)
+                .recursive(true)
+                .prefix("")
+                .build());
+        List<ResourceResponse> resultList = new ArrayList<>();
+
+        for (var itemResult : results) {
+            if (getName(itemResult.get().objectName().toLowerCase(Locale.ROOT)).contains(query.toLowerCase(Locale.ROOT))) {
+                var path = itemResult.get().objectName();
+
+                if(path.endsWith("/")) {
+                    resultList.add(
+                            new DirectoryResponse(
+                                    getPath(path),
+                                    getName(path),
+                                    "DIRECTORY")
+                    );
+                } else {
+                    resultList.add(
+                            new FileResponse(
+                                    getPath(path),
+                                    getName(path),
+                                    itemResult.get().size(),
+                                    "FILE")
+                    );
+                }
+            }
+        }
+        return resultList;
     }
 
     private static void ifPathInvalidThrowException(String path) {
