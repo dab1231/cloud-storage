@@ -331,6 +331,49 @@ public class MinioService {
         return resourceResponses;
     }
 
+    public List<ResourceResponse> getResourcesInDirectory(String path) throws MinioException {
+
+        if (path.contains("..") || (!path.isBlank() && !path.endsWith("/"))) {
+            throw new InvalidPathException("Directory path must not be blank, must not contain '..', and must end with '/'");
+        }
+
+        var results = minioClient.listObjects(ListObjectsArgs.builder()
+                .bucket(bucketName)
+                .prefix(path)
+                .build());
+
+        if (!results.iterator().hasNext() && !path.equals("")) {
+            throw new ResourceNotFoundException("Resource not found");
+        }
+
+        List<ResourceResponse> resultList = new ArrayList<>();
+
+        for(var itemResult : results) {
+            if (itemResult.get().objectName().equals(path)) continue;
+
+            var itemPath = itemResult.get().objectName();
+
+            if (itemPath.endsWith("/")) {
+                resultList.add(
+                        new DirectoryResponse(
+                                getPath(itemPath),
+                                getName(itemPath),
+                                "DIRECTORY")
+                );
+            } else {
+                resultList.add(
+                        new FileResponse(
+                                getPath(itemPath),
+                                getName(itemPath),
+                                itemResult.get().size(),
+                                "FILE")
+                );
+            }
+        }
+
+        return resultList;
+    }
+
     private static void ifPathInvalidThrowException(String path) {
         if (path.isBlank() || path.contains("..")) {
             throw new InvalidPathException("Path must not be blank or contain '..'");

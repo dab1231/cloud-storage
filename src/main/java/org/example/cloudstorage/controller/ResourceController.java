@@ -113,4 +113,13 @@ public class ResourceController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(fileResponses);
     }
+
+    @GetMapping("/directory")
+    public ResponseEntity<List<ResourceResponse>> getResourcesInDirectory(@RequestParam String path) throws MinioException {
+
+        var resourcesInDirectory = minioService.getResourcesInDirectory(path);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(resourcesInDirectory);
+    }
 }
