@@ -391,6 +391,10 @@ public class MinioService {
     private String getName(String path) {
         String name;
         var split = path.split("/");
+        if (path.endsWith("/")) {
+            name = split[split.length - 1];
+            return name + "/";
+        }
         name = split[split.length - 1];
         return name;
     }
