@@ -348,7 +348,7 @@ public class MinioService {
 
         List<ResourceResponse> resultList = new ArrayList<>();
 
-        for(var itemResult : results) {
+        for (var itemResult : results) {
             if (itemResult.get().objectName().equals(path)) continue;
 
             var itemPath = itemResult.get().objectName();

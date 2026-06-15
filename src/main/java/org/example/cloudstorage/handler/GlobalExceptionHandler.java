@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,7 +34,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);
-        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.CONFLICT);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(AuthenticationException.class)
@@ -43,7 +42,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);
-        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.UNAUTHORIZED);
     }
 
     @Override
@@ -51,10 +50,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         List<String> errorMessages = ex.getBindingResult().getFieldErrors().stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage).toList();
 
+        String errorMessage = String.join("; ", errorMessages);
         for (String message : errorMessages) {
             log.warn(message);
         }
-        return new ResponseEntity<>(new ErrorResponse(errorMessages), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var errorMessage = ex.getMessage();
         log.warn(errorMessage);
-        return new ResponseEntity<>(new ErrorResponse(Collections.singletonList(errorMessage)), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidBodyException.class)
@@ -71,7 +71,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);
-        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidPathException.class)
@@ -79,7 +79,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);
-        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ErrorResponseException.class)
@@ -89,12 +89,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
             var errorMessage = e.getMessage();
             log.warn(errorMessage);
-            return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.NOT_FOUND);
         } else {
 
             var errorMessage = e.getMessage();
             log.warn(errorMessage);
-            return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -103,7 +103,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);
-        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MinioException.class)
@@ -111,7 +111,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);
-        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
@@ -119,6 +119,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         var errorMessage = e.getMessage();
         log.warn(errorMessage);
-        return new ResponseEntity<>(new ErrorResponse(List.of(errorMessage)), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

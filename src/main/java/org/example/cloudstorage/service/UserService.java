@@ -23,7 +23,9 @@ public class UserService {
 
         userRepository.findByUsername(userRequest.username())
                 .ifPresent(user ->
-                        {throw new UserAlreadyExistsException("User with username " + userRequest.username() + " already exists");}
+                        {
+                            throw new UserAlreadyExistsException("User with username " + userRequest.username() + " already exists");
+                        }
                 );
 
         var user = User.builder()

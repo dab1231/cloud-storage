@@ -29,7 +29,7 @@ class UserServiceTest {
     UserService userService;
 
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-        "postgres:16"
+            "postgres:16"
     );
 
     @BeforeAll

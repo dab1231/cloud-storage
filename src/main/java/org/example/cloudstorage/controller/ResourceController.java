@@ -71,9 +71,9 @@ public class ResourceController {
             return ResponseEntity.status(HttpStatus.OK)
                     .headers(headers)
                     .body(outputStream -> {
-                                try (inputStream) {
-                                    inputStream.transferTo(outputStream);
-                                }
+                        try (inputStream) {
+                            inputStream.transferTo(outputStream);
+                        }
                     });
 
         }
@@ -106,7 +106,7 @@ public class ResourceController {
     }
 
     @PostMapping("/resource")
-    public ResponseEntity<List<ResourceResponse>> uploadFiles(@RequestParam("object")List<MultipartFile> files, @RequestParam String path) throws MinioException, IOException {
+    public ResponseEntity<List<ResourceResponse>> uploadFiles(@RequestParam("object") List<MultipartFile> files, @RequestParam String path) throws MinioException, IOException {
 
         var fileResponses = minioService.uploadFiles(files, path);
 

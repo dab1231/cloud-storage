@@ -24,7 +24,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> registration(@RequestBody @Validated UserRequest userRequest,
                                                      HttpServletRequest request) {
 
-        var userResponse = authService.registration(userRequest,  request);
+        var userResponse = authService.registration(userRequest, request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userResponse);
