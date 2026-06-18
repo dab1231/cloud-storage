@@ -34,6 +34,12 @@ services:
       - minio_data:/data
 
 
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+
 volumes:
   myapp:
   minio_data:

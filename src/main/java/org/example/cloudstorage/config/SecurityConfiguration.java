@@ -47,7 +47,7 @@ public class SecurityConfiguration {
                         .logoutSuccessHandler((request, response, authentication) -> {
                             response.setStatus(HttpStatus.NO_CONTENT.value());
                         })
-                        .deleteCookies("JSESSIONID")
+                        .deleteCookies("SESSION")
                 );
 
         return http.build();
