@@ -1,5 +1,6 @@
 package org.example.cloudstorage.service;
 
+import io.minio.errors.MinioException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
 
-    public UserResponse registration(UserRequest userRequest, HttpServletRequest request) {
+    public UserResponse registration(UserRequest userRequest, HttpServletRequest request) throws MinioException {
 
         var userResponse = userService.registration(userRequest);
 

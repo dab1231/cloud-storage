@@ -1,6 +1,7 @@
 package org.example.cloudstorage.security;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.example.cloudstorage.entity.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,8 @@ import java.util.List;
 
 @AllArgsConstructor
 public class UserDetailsDto implements UserDetails {
+    @Getter
+    private Long id;
     private String username;
     private String password;
     private Role role;
@@ -28,4 +31,5 @@ public class UserDetailsDto implements UserDetails {
     public String getUsername() {
         return username;
     }
+
 }

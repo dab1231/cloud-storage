@@ -1,5 +1,6 @@
 package org.example.cloudstorage.service;
 
+import io.minio.errors.MinioException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.request.UserRequest;
@@ -18,8 +19,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MinioService minioService;
 
-    public UserResponse registration(UserRequest userRequest) {
+    public UserResponse registration(UserRequest userRequest) throws MinioException {
 
         userRepository.findByUsername(userRequest.username())
                 .ifPresent(user ->
@@ -35,6 +37,8 @@ public class UserService {
                 .build();
 
         var savedUser = userRepository.save(user);
+
+        minioService.createDirectory(minioService.getUserDirectoryName(savedUser.getId()));
 
         return UserResponse.builder()
                 .username(savedUser.getUsername())

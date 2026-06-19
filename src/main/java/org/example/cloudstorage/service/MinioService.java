@@ -14,7 +14,9 @@ import org.example.cloudstorage.exception.InvalidBodyException;
 import org.example.cloudstorage.exception.InvalidPathException;
 import org.example.cloudstorage.exception.ResourceAlreadyExistsException;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
+import org.example.cloudstorage.security.UserDetailsDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -410,5 +412,14 @@ public class MinioService {
             var index = path.lastIndexOf('/');
             return path.substring(0, index + 1);
         }
+    }
+
+    public String getUserDirectoryName(Long id) {
+        return "user-" + id + "-files/";
+    }
+
+    private String getUserPrefix() {
+        var principal = (UserDetailsDto) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return getUserDirectoryName(principal.getId());
     }
 }

@@ -1,5 +1,6 @@
 package org.example.cloudstorage.controller;
 
+import io.minio.errors.MinioException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.dto.request.UserRequest;
@@ -22,9 +23,10 @@ public class AuthController {
 
     @PostMapping("/sign-up")
     public ResponseEntity<UserResponse> registration(@RequestBody @Validated UserRequest userRequest,
-                                                     HttpServletRequest request) {
+                                                     HttpServletRequest request) throws MinioException {
 
         var userResponse = authService.registration(userRequest, request);
+
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userResponse);
