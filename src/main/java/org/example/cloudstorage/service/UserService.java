@@ -38,7 +38,7 @@ public class UserService {
 
         var savedUser = userRepository.save(user);
 
-        minioService.createDirectory(minioService.getUserDirectoryName(savedUser.getId()));
+        minioService.createUserDirectory(minioService.getUserDirectoryName(savedUser.getId()));
 
         return UserResponse.builder()
                 .username(savedUser.getUsername())

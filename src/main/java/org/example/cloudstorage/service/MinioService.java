@@ -45,11 +45,13 @@ public class MinioService {
 
         ifPathInvalidThrowException(path);
 
+        String fullPath = getUserPrefix() + path;
+
         if (path.endsWith("/")) {
 
             var results = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(bucketName)
-                    .prefix(path)
+                    .prefix(fullPath)
                     .build());
 
             if (!results.iterator().hasNext()) {
@@ -65,11 +67,11 @@ public class MinioService {
         } else {
             var statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
                     .bucket(bucketName)
-                    .object(path)
+                    .object(fullPath)
                     .build());
 
             return new FileResponse(
-                    getPath(statObjectResponse.object()),
+                    getPath(path),
                     getName(path),
                     statObjectResponse.size(),
                     "FILE"
@@ -81,11 +83,13 @@ public class MinioService {
 
         ifPathInvalidThrowException(path);
 
+        String fullPath = getUserPrefix() + path;
+
         if (path.endsWith("/")) {
 
             var results = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(bucketName)
-                    .prefix(path)
+                    .prefix(fullPath)
                     .recursive(true)
                     .build());
 
@@ -111,7 +115,7 @@ public class MinioService {
         } else {
             minioClient.removeObject(RemoveObjectArgs.builder()
                     .bucket(bucketName)
-                    .object(path)
+                    .object(fullPath)
                     .build());
         }
     }
@@ -119,11 +123,12 @@ public class MinioService {
     public DownloadedFile downloadFile(String path) throws MinioException {
 
         ifPathInvalidThrowException(path);
+        String fullPath = getUserPrefix() + path;
 
         InputStream stream = minioClient.getObject(
                 GetObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(path)
+                        .object(fullPath)
                         .build());
         return new DownloadedFile(getName(path), stream);
 
@@ -132,12 +137,12 @@ public class MinioService {
     public void downloadDirectory(String path, OutputStream outputStream) throws MinioException, IOException {
 
         ifPathInvalidThrowException(path);
-
+        String fullPath = getUserPrefix() + path;
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
 
         var results = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(bucketName)
-                .prefix(path)
+                .prefix(fullPath)
                 .recursive(true)
                 .build());
 
@@ -148,7 +153,7 @@ public class MinioService {
                     .object(itemResult.get().objectName())
                     .build());
 
-            String name = object.object().substring(path.length());
+            String name = object.object().substring(fullPath.length());
 
             zipOutputStream.putNextEntry(new ZipEntry(name));
             object.transferTo(zipOutputStream);
@@ -161,11 +166,13 @@ public class MinioService {
     public ResourceResponse moveResource(String from, String to) throws MinioException {
 
         ifPathInvalidThrowException(from, to);
+        String fullPathTo = getUserPrefix() + to;
+        String fullPathFrom = getUserPrefix() + from;
 
         if (from.endsWith("/")) {
             var results = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(bucketName)
-                    .prefix(to)
+                    .prefix(fullPathTo)
                     .build());
 
             if (results.iterator().hasNext()) {
@@ -174,14 +181,14 @@ public class MinioService {
 
             var objects = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(bucketName)
-                    .prefix(from)
+                    .prefix(fullPathFrom)
                     .recursive(true)
                     .build());
 
             for (var object : objects) {
                 minioClient.copyObject(CopyObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(to + object.get().objectName().substring(from.length()))
+                        .object(fullPathTo + object.get().objectName().substring(fullPathFrom.length()))
                         .source(SourceObject.builder()
                                 .bucket(bucketName)
                                 .object(object.get().objectName())
@@ -194,7 +201,7 @@ public class MinioService {
             try {
                 minioClient.statObject(StatObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(to)
+                        .object(fullPathTo)
                         .build());
                 throw new ResourceAlreadyExistsException("Resource with name: " + to + " already exists");
 
@@ -206,10 +213,10 @@ public class MinioService {
 
             minioClient.copyObject(CopyObjectArgs.builder()
                     .bucket(bucketName)
-                    .object(to)
+                    .object(fullPathTo)
                     .source(SourceObject.builder()
                             .bucket(bucketName)
-                            .object(from)
+                            .object(fullPathFrom)
                             .build())
                     .build());
 
@@ -222,17 +229,18 @@ public class MinioService {
         if (path.isBlank() || path.contains("..") || !path.endsWith("/")) {
             throw new InvalidPathException("Directory path must not be blank, must not contain '..', and must end with '/'");
         }
+        String fullPath = getUserPrefix() + path;
 
         var results = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(bucketName)
-                .prefix(path)
+                .prefix(fullPath)
                 .build());
 
         if (results.iterator().hasNext()) {
             throw new ResourceAlreadyExistsException("Resource already exists");
         }
 
-        var parentPath = getPath(path);
+        var parentPath = getPath(fullPath);
         if (!parentPath.isEmpty()) {
             var parentResults = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(bucketName)
@@ -246,11 +254,21 @@ public class MinioService {
         minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(path).stream(
+                        .object(fullPath).stream(
                                 new ByteArrayInputStream(new byte[]{}), 0L, -1L)
                         .build());
 
         return (DirectoryResponse) getInfo(path);
+    }
+
+    public void createUserDirectory(String userDirectoryName) throws MinioException {
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(userDirectoryName).stream(
+                                new ByteArrayInputStream(new byte[]{}), 0L, -1L)
+                        .build());
+
     }
 
     public List<ResourceResponse> searchResources(String query) throws MinioException {
@@ -259,13 +277,14 @@ public class MinioService {
         var results = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(bucketName)
                 .recursive(true)
-                .prefix("")
+                .prefix(getUserPrefix())
                 .build());
         List<ResourceResponse> resultList = new ArrayList<>();
 
         for (var itemResult : results) {
             if (getName(itemResult.get().objectName().toLowerCase(Locale.ROOT)).contains(query.toLowerCase(Locale.ROOT))) {
                 var path = itemResult.get().objectName();
+                path = path.substring(getUserPrefix().length());
 
                 if (path.endsWith("/")) {
                     resultList.add(
@@ -290,9 +309,10 @@ public class MinioService {
 
     public List<ResourceResponse> uploadFiles(List<MultipartFile> files, String path) throws MinioException, IOException {
 
-        if (path.isBlank() || path.contains("..") || !path.endsWith("/")) {
+        if (path.contains("..") || (!path.isBlank() && !path.endsWith("/"))) {
             throw new InvalidPathException("Directory path must not be blank, must not contain '..', and must end with '/'");
         }
+        String fullPath = getUserPrefix() + path;
 
         if (files.isEmpty()) {
             throw new InvalidBodyException("Invalid request body");
@@ -300,8 +320,8 @@ public class MinioService {
         List<ResourceResponse> resourceResponses = new ArrayList<>();
         for (MultipartFile file : files) {
 
-            var originalFilename = path.concat(Objects.requireNonNull(file.getOriginalFilename()));
-
+            var originalFilename = fullPath.concat(Objects.requireNonNull(file.getOriginalFilename()));
+            var responsePath = path.concat(file.getOriginalFilename());
             try {
                 minioClient.statObject(StatObjectArgs.builder()
                         .bucket(bucketName)
@@ -323,8 +343,8 @@ public class MinioService {
                     .build());
 
             resourceResponses.add(new FileResponse(
-                    getPath(originalFilename),
-                    getName(originalFilename),
+                    getPath(responsePath),
+                    getName(responsePath),
                     file.getSize(),
                     "FILE"
             ));
@@ -338,22 +358,24 @@ public class MinioService {
         if (path.contains("..") || (!path.isBlank() && !path.endsWith("/"))) {
             throw new InvalidPathException("Directory path must not be blank, must not contain '..', and must end with '/'");
         }
+        String fullPath = getUserPrefix() + path;
 
         var results = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(bucketName)
-                .prefix(path)
+                .prefix(fullPath)
                 .build());
 
-        if (!results.iterator().hasNext() && !path.equals("")) {
+        if (!results.iterator().hasNext() && !path.isEmpty()) {
             throw new ResourceNotFoundException("Resource not found");
         }
 
         List<ResourceResponse> resultList = new ArrayList<>();
 
         for (var itemResult : results) {
-            if (itemResult.get().objectName().equals(path)) continue;
+            if (itemResult.get().objectName().equals(fullPath)) continue;
 
             var itemPath = itemResult.get().objectName();
+            itemPath = itemPath.substring(getUserPrefix().length());
 
             if (itemPath.endsWith("/")) {
                 resultList.add(
