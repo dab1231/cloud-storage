@@ -2,6 +2,7 @@ package org.example.cloudstorage.controller;
 
 import io.minio.errors.MinioException;
 import lombok.RequiredArgsConstructor;
+import org.example.cloudstorage.controller.api.ResourceControllerApi;
 import org.example.cloudstorage.dto.download.DownloadedFile;
 import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
@@ -17,11 +18,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
-public class ResourceController {
+public class ResourceController implements ResourceControllerApi {
 
     private final MinioService minioService;
 
     @GetMapping("/resource")
+    @Override
     public ResponseEntity<ResourceResponse> getInfo(@RequestParam String path) throws MinioException {
 
         var info = minioService.getInfo(path);
@@ -30,6 +32,7 @@ public class ResourceController {
     }
 
     @DeleteMapping("/resource")
+    @Override
     public ResponseEntity<Object> deleteResource(@RequestParam String path) throws MinioException {
 
         minioService.deleteResource(path);
@@ -38,6 +41,7 @@ public class ResourceController {
     }
 
     @GetMapping("/resource/download")
+    @Override
     public ResponseEntity<StreamingResponseBody> downloadResource(@RequestParam String path) throws MinioException {
 
         if (path.endsWith("/")) {
@@ -80,6 +84,7 @@ public class ResourceController {
     }
 
     @GetMapping("/resource/move")
+    @Override
     public ResponseEntity<ResourceResponse> moveResource(@RequestParam String from, @RequestParam String to) throws MinioException {
 
         var resourceResponse = minioService.moveResource(from, to);
@@ -88,6 +93,7 @@ public class ResourceController {
     }
 
     @PostMapping("/directory")
+    @Override
     public ResponseEntity<DirectoryResponse> createDirectory(@RequestParam String path) throws MinioException {
 
         var directory = minioService.createDirectory(path);
@@ -97,6 +103,7 @@ public class ResourceController {
     }
 
     @GetMapping("/resource/search")
+    @Override
     public ResponseEntity<List<ResourceResponse>> searchResources(@RequestParam String query) throws MinioException {
 
         var resourceResponses = minioService.searchResources(query);
@@ -106,6 +113,7 @@ public class ResourceController {
     }
 
     @PostMapping("/resource")
+    @Override
     public ResponseEntity<List<ResourceResponse>> uploadFiles(@RequestParam("object") List<MultipartFile> files, @RequestParam String path) throws MinioException, IOException {
 
         var fileResponses = minioService.uploadFiles(files, path);
@@ -115,6 +123,7 @@ public class ResourceController {
     }
 
     @GetMapping("/directory")
+    @Override
     public ResponseEntity<List<ResourceResponse>> getResourcesInDirectory(@RequestParam String path) throws MinioException {
 
         var resourcesInDirectory = minioService.getResourcesInDirectory(path);

@@ -113,6 +113,9 @@ public class MinioService {
             }
 
         } else {
+
+            getInfo(path);
+
             minioClient.removeObject(RemoveObjectArgs.builder()
                     .bucket(bucketName)
                     .object(fullPath)

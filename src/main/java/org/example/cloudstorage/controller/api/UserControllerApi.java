@@ -19,7 +19,7 @@ public interface UserControllerApi {
     @SecurityRequirement(name = "session-cookie")
     @Operation(summary = "Получает username и возвращает его")
     @ApiResponses({
-            @ApiResponse(responseCode = "401", description = "Неверные данные", content = @Content(mediaType = "application/json",
+            @ApiResponse(responseCode = "401", description = "Пользователь не авторизован", content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Неизвестная ошибка", content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ErrorResponse.class))),
