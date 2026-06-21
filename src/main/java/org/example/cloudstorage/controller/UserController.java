@@ -1,6 +1,7 @@
 package org.example.cloudstorage.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.cloudstorage.controller.api.UserControllerApi;
 import org.example.cloudstorage.dto.response.UserResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,15 +14,12 @@ import java.security.Principal;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
-public class UserController {
+public class UserController implements UserControllerApi {
 
 
     @GetMapping("/me")
+    @Override
     public ResponseEntity<UserResponse> getCurrentUser(Principal principal) {
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
 
         var username = principal.getName();
         return ResponseEntity.status(HttpStatus.OK)
