@@ -3,6 +3,7 @@ package org.example.cloudstorage.controller;
 import io.minio.errors.MinioException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.example.cloudstorage.controller.api.AuthControllerApi;
 import org.example.cloudstorage.dto.request.UserRequest;
 import org.example.cloudstorage.dto.response.UserResponse;
 import org.example.cloudstorage.service.AuthService;
@@ -17,10 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
-public class AuthController {
+public class AuthController implements AuthControllerApi {
 
     private final AuthService authService;
 
+    @Override
     @PostMapping("/sign-up")
     public ResponseEntity<UserResponse> registration(@RequestBody @Validated UserRequest userRequest,
                                                      HttpServletRequest request) throws MinioException {
@@ -33,6 +35,7 @@ public class AuthController {
     }
 
     @PostMapping("/sign-in")
+    @Override
     public ResponseEntity<UserResponse> login(@RequestBody @Validated UserRequest userRequest, HttpServletRequest request) {
 
         var userResponse = authService.login(userRequest, request);
