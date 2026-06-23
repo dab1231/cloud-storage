@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.ErrorResponse;
+import org.example.cloudstorage.dto.response.FileResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,7 +37,7 @@ public interface ResourceControllerApi {
             @ApiResponse(responseCode = "500", description = "Неизвестная ошибка",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "200", description = "Успешно",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResourceResponse.class)))
+                    content = @Content(mediaType = "application/json", schema = @Schema(oneOf = {FileResponse.class, DirectoryResponse.class}, type = "object")))
     })
     ResponseEntity<ResourceResponse> getInfo(
             @Parameter(description = "путь к ресурсу",
@@ -76,7 +77,7 @@ public interface ResourceControllerApi {
             @ApiResponse(responseCode = "500", description = "Неизвестная ошибка",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "200", description = "Успешно",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResourceResponse.class)))
+                    content = @Content(mediaType = "application/json", schema = @Schema(oneOf = {FileResponse.class, DirectoryResponse.class}, type = "object")))
     })
     ResponseEntity<ResourceResponse> moveResource(
             @Parameter(description = "откуда переместить/переименовать", required = true)
@@ -117,7 +118,7 @@ public interface ResourceControllerApi {
             @ApiResponse(responseCode = "500", description = "Неизвестная ошибка",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "200", description = "Успешно",
-                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ResourceResponse.class))))
+                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(oneOf = {FileResponse.class, DirectoryResponse.class}, type = "object"))))
     })
     ResponseEntity<List<ResourceResponse>> searchResources(
             @Parameter(description = "поисковой запрос",
@@ -136,7 +137,7 @@ public interface ResourceControllerApi {
             @ApiResponse(responseCode = "500", description = "Неизвестная ошибка",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "200", description = "Успешно",
-                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ResourceResponse.class))))
+                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(oneOf = {FileResponse.class, DirectoryResponse.class}, type = "object"))))
     })
     ResponseEntity<List<ResourceResponse>> getResourcesInDirectory(
             @Parameter(description = "путь к папке",
@@ -175,7 +176,7 @@ public interface ResourceControllerApi {
             @ApiResponse(responseCode = "500", description = "Неизвестная ошибка",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "201", description = "Успешно",
-                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ResourceResponse.class))))
+                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = FileResponse.class))))
     })
     ResponseEntity<List<ResourceResponse>> uploadFiles(
             @RequestParam("object") List<MultipartFile> files,
