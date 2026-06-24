@@ -4,6 +4,7 @@ import io.minio.*;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
 import io.minio.messages.DeleteRequest;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.cloudstorage.dto.download.DownloadedFile;
@@ -40,6 +41,18 @@ public class MinioService {
 
     @Value("${minio.bucket-name}")
     private String bucketName;
+
+    @PostConstruct
+    private void createBucketIfNotExist() throws MinioException {
+        var exists = minioClient.bucketExists(BucketExistsArgs.builder()
+                .bucket(bucketName)
+                .build());
+        if (!exists) {
+            minioClient.makeBucket(MakeBucketArgs.builder()
+                    .bucket(bucketName)
+                    .build());
+        }
+    }
 
     public ResourceResponse getInfo(String path) throws MinioException {
 
