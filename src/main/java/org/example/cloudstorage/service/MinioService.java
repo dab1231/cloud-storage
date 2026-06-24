@@ -65,10 +65,17 @@ public class MinioService {
             }
 
         } else {
-            var statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
-                    .bucket(bucketName)
-                    .object(fullPath)
-                    .build());
+            StatObjectResponse statObjectResponse = null;
+            try {
+                statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(fullPath)
+                        .build());
+            } catch (ErrorResponseException e) {
+                if (Objects.equals(e.errorResponse().code(), "NoSuchKey")) {
+                    throw new ResourceNotFoundException("Resource not found");
+                }
+            }
 
             return new FileResponse(
                     getPath(path),
