@@ -1,5 +1,7 @@
 package org.example.cloudstorage.dto.response;
 
-public record DirectoryResponse(String path, String name, String type)
+import org.example.cloudstorage.enums.ResourceType;
+
+public record DirectoryResponse(String path, String name, ResourceType type)
         implements ResourceResponse {
 }

@@ -4,6 +4,7 @@ import io.minio.*;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
 import io.minio.messages.DeleteRequest;
+import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.example.cloudstorage.dto.download.DownloadedResource;
 import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.FileResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
+import org.example.cloudstorage.enums.ResourceType;
 import org.example.cloudstorage.exception.InvalidBodyException;
 import org.example.cloudstorage.exception.InvalidPathException;
 import org.example.cloudstorage.exception.ResourceAlreadyExistsException;
@@ -38,6 +40,8 @@ import java.util.zip.ZipOutputStream;
 @Service
 public class MinioServiceImpl implements MinioService {
 
+    public static final long OBJECT_SIZE = 0L;
+    public static final long PART_SIZE = -1L;
     private final MinioClient minioClient;
 
     @Value("${minio.bucket-name}")
@@ -67,7 +71,7 @@ public class MinioServiceImpl implements MinioService {
             if (!results.iterator().hasNext()) {
                 throw new ResourceNotFoundException("Resource not found");
             } else {
-                return new DirectoryResponse(getPath(path), getName(path), "DIRECTORY");
+                return new DirectoryResponse(getPath(path), getName(path), ResourceType.DIRECTORY);
             }
 
         } else {
@@ -83,7 +87,7 @@ public class MinioServiceImpl implements MinioService {
             }
 
             assert statObjectResponse != null;
-            return new FileResponse(getPath(path), getName(path), statObjectResponse.size(), "FILE");
+            return new FileResponse(getPath(path), getName(path), statObjectResponse.size(), ResourceType.FILE);
         }
     }
 
@@ -272,7 +276,7 @@ public class MinioServiceImpl implements MinioService {
 
         minioClient.putObject(
                 PutObjectArgs.builder().bucket(bucketName).object(fullPath).stream(
-                                new ByteArrayInputStream(new byte[]{}), 0L, -1L)
+                                new ByteArrayInputStream(new byte[]{}), OBJECT_SIZE, PART_SIZE)
                         .build());
 
         return (DirectoryResponse) getInfo(path);
@@ -282,7 +286,7 @@ public class MinioServiceImpl implements MinioService {
     public void createUserDirectory(String userDirectoryName) throws MinioException {
         minioClient.putObject(
                 PutObjectArgs.builder().bucket(bucketName).object(userDirectoryName).stream(
-                                new ByteArrayInputStream(new byte[]{}), 0L, -1L)
+                                new ByteArrayInputStream(new byte[]{}), OBJECT_SIZE, PART_SIZE)
                         .build());
     }
 
@@ -302,15 +306,7 @@ public class MinioServiceImpl implements MinioService {
         for (var itemResult : results) {
             if (getName(itemResult.get().objectName().toLowerCase(Locale.ROOT))
                     .contains(query.toLowerCase(Locale.ROOT))) {
-                var path = itemResult.get().objectName();
-                path = path.substring(getUserPrefix().length());
-
-                if (path.endsWith("/")) {
-                    resultList.add(new DirectoryResponse(getPath(path), getName(path), "DIRECTORY"));
-                } else {
-                    resultList.add(
-                            new FileResponse(getPath(path), getName(path), itemResult.get().size(), "FILE"));
-                }
+                addResourceToList(resultList, itemResult);
             }
         }
         return resultList;
@@ -348,12 +344,12 @@ public class MinioServiceImpl implements MinioService {
 
             minioClient.putObject(
                     PutObjectArgs.builder().bucket(bucketName).object(originalFilename).stream(
-                                    file.getInputStream(), file.getSize(), -1L)
+                                    file.getInputStream(), file.getSize(), PART_SIZE)
                             .contentType(file.getContentType())
                             .build());
 
             resourceResponses.add(
-                    new FileResponse(getPath(responsePath), getName(responsePath), file.getSize(), "FILE"));
+                    new FileResponse(getPath(responsePath), getName(responsePath), file.getSize(), ResourceType.FILE));
         }
 
         return resourceResponses;
@@ -381,19 +377,23 @@ public class MinioServiceImpl implements MinioService {
         for (var itemResult : results) {
             if (itemResult.get().objectName().equals(fullPath)) continue;
 
-            var itemPath = itemResult.get().objectName();
-            itemPath = itemPath.substring(getUserPrefix().length());
-
-            if (itemPath.endsWith("/")) {
-                resultList.add(new DirectoryResponse(getPath(itemPath), getName(itemPath), "DIRECTORY"));
-            } else {
-                resultList.add(
-                        new FileResponse(
-                                getPath(itemPath), getName(itemPath), itemResult.get().size(), "FILE"));
-            }
+            addResourceToList(resultList, itemResult);
         }
 
         return resultList;
+    }
+
+    private void addResourceToList(List<ResourceResponse> resultList, Result<Item> itemResult) throws MinioException {
+        var itemPath = itemResult.get().objectName();
+        itemPath = itemPath.substring(getUserPrefix().length());
+
+        if (itemPath.endsWith("/")) {
+            resultList.add(new DirectoryResponse(getPath(itemPath), getName(itemPath), ResourceType.DIRECTORY));
+        } else {
+            resultList.add(
+                    new FileResponse(
+                            getPath(itemPath), getName(itemPath), itemResult.get().size(), ResourceType.FILE));
+        }
     }
 
     private static void ifPathInvalidThrowException(String path) {

@@ -8,7 +8,8 @@ import io.minio.errors.MinioException;
 import io.minio.messages.DeleteRequest;
 import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.FileResponse;
-import org.example.cloudstorage.entity.Role;
+import org.example.cloudstorage.enums.ResourceType;
+import org.example.cloudstorage.enums.Role;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.example.cloudstorage.security.UserDetailsDto;
 import org.example.cloudstorage.service.impl.MinioServiceImpl;
@@ -114,7 +115,7 @@ public class MinioServiceTest {
         var info = (FileResponse) minioService.getInfo(multipartFile1.getOriginalFilename());
         assertThat(info.path()).isEqualTo("");
         assertThat(info.name()).isEqualTo("test1");
-        assertThat(info.type()).isEqualTo("FILE");
+        assertThat(info.type()).isEqualTo(ResourceType.FILE);
         assertThat(info.size()).isEqualTo(multipartFile1.getSize());
     }
 

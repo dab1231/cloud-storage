@@ -3,6 +3,7 @@ package org.example.cloudstorage.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.example.cloudstorage.enums.Role;
 
 @NoArgsConstructor
 @AllArgsConstructor

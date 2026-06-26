@@ -2,7 +2,7 @@ package org.example.cloudstorage.security;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.example.cloudstorage.entity.Role;
+import org.example.cloudstorage.enums.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

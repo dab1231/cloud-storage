@@ -1,4 +1,4 @@
-package org.example.cloudstorage.entity;
+package org.example.cloudstorage.enums;
 
 import org.springframework.security.core.GrantedAuthority;
 
