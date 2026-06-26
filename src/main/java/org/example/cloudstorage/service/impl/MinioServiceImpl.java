@@ -17,6 +17,7 @@ import org.example.cloudstorage.exception.InvalidBodyException;
 import org.example.cloudstorage.exception.InvalidPathException;
 import org.example.cloudstorage.exception.ResourceAlreadyExistsException;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
+import org.example.cloudstorage.helper.PathValidationHelper;
 import org.example.cloudstorage.service.MinioService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,7 @@ public class MinioServiceImpl implements MinioService {
     @Override
     public ResourceResponse getInfo(String path, Long id) throws MinioException {
 
-        ifPathInvalidThrowException(path);
+        PathValidationHelper.ifPathInvalidThrowException(path);
 
         String fullPath = getUserDirectoryName(id) + path;
 
@@ -93,7 +94,7 @@ public class MinioServiceImpl implements MinioService {
     @Override
     public void deleteResource(String path, Long id) throws MinioException {
 
-        ifPathInvalidThrowException(path);
+        PathValidationHelper.ifPathInvalidThrowException(path);
 
         String fullPath = getUserDirectoryName(id) + path;
 
@@ -145,7 +146,7 @@ public class MinioServiceImpl implements MinioService {
 
     private DownloadedResource downloadFile(String path, Long id) throws MinioException {
 
-        ifPathInvalidThrowException(path);
+        PathValidationHelper.ifPathInvalidThrowException(path);
         String fullPath = getUserDirectoryName(id) + path;
 
         InputStream stream =
@@ -156,7 +157,7 @@ public class MinioServiceImpl implements MinioService {
     private DownloadedResource downloadDirectory(String path, Long id)
             throws MinioException, IOException {
 
-        ifPathInvalidThrowException(path);
+        PathValidationHelper.ifPathInvalidThrowException(path);
         String fullPath = getUserDirectoryName(id) + path;
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
@@ -191,7 +192,7 @@ public class MinioServiceImpl implements MinioService {
     @Override
     public ResourceResponse moveResource(String from, String to, Long id) throws MinioException {
 
-        ifPathInvalidThrowException(from, to);
+        PathValidationHelper.ifPathInvalidThrowException(from, to);
         String fullPathTo = getUserDirectoryName(id) + to;
         String fullPathFrom = getUserDirectoryName(id) + from;
 
@@ -293,7 +294,7 @@ public class MinioServiceImpl implements MinioService {
 
     @Override
     public List<ResourceResponse> searchResources(String query, Long id) throws MinioException {
-        ifPathInvalidThrowException(query);
+        PathValidationHelper.ifPathInvalidThrowException(query);
 
         var results =
                 minioClient.listObjects(
@@ -398,24 +399,6 @@ public class MinioServiceImpl implements MinioService {
             resultList.add(
                     new FileResponse(
                             getPath(itemPath), getName(itemPath), itemResult.get().size(), ResourceType.FILE));
-        }
-    }
-
-    private static void ifPathInvalidThrowException(String path) {
-        if (path.isBlank() || path.contains("..")) {
-            throw new InvalidPathException("Path must not be blank or contain '..'");
-        }
-    }
-
-    private static void ifPathInvalidThrowException(String from, String to) {
-        if (from.isBlank()
-                || from.contains("..")
-                || to.isBlank()
-                || to.contains("..")
-                || from.equals(to)
-                || (from.endsWith("/") && !to.endsWith("/"))
-                || (to.endsWith("/") && !from.endsWith("/"))) {
-            throw new InvalidPathException("Invalid path to or from");
         }
     }
 
