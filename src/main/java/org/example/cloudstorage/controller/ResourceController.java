@@ -3,7 +3,6 @@ package org.example.cloudstorage.controller;
 import io.minio.errors.MinioException;
 import lombok.RequiredArgsConstructor;
 import org.example.cloudstorage.controller.api.ResourceControllerApi;
-import org.example.cloudstorage.dto.download.DownloadedFile;
 import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
 import org.example.cloudstorage.service.MinioService;
@@ -38,35 +37,14 @@ public class ResourceController implements ResourceControllerApi {
     }
 
     @Override
-    public ResponseEntity<StreamingResponseBody> downloadResource(String path) throws MinioException {
+    public ResponseEntity<StreamingResponseBody> downloadResource(String path) throws MinioException, IOException {
 
-        if (path.endsWith("/")) {
+        var downloadedResource = minioService.downloadedResource(path);
 
-            var info = (DirectoryResponse) minioService.getInfo(path);
-            var directoryName = info.name();
-
+        try (var inputStream = downloadedResource.inputStream()){
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentDisposition(ContentDisposition.attachment().filename(directoryName + ".zip").build());
+            headers.setContentDisposition(ContentDisposition.attachment().filename(downloadedResource.name()).build());
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-            return ResponseEntity.status(HttpStatus.OK)
-                    .headers(headers)
-                    .body(outputStream -> {
-                        try {
-                            minioService.downloadDirectory(path, outputStream);
-                        } catch (MinioException e) {
-                            throw new IOException(e);
-                        }
-                    });
-
-        } else {
-
-            DownloadedFile downloadedFile = minioService.downloadFile(path);
-            var inputStream = downloadedFile.inputStream();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDisposition(ContentDisposition.attachment().filename(downloadedFile.name()).build());
 
             return ResponseEntity.status(HttpStatus.OK)
                     .headers(headers)
@@ -75,7 +53,6 @@ public class ResourceController implements ResourceControllerApi {
                             inputStream.transferTo(outputStream);
                         }
                     });
-
         }
     }
 

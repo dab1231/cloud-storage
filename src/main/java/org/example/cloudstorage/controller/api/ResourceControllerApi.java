@@ -161,7 +161,7 @@ public interface ResourceControllerApi {
     @GetMapping("/resource/download")
     ResponseEntity<StreamingResponseBody> downloadResource(
             @Parameter(description = "путь к ресурсу для скачивания", required = true) @RequestParam String path
-    ) throws MinioException;
+    ) throws MinioException, IOException;
 
 
     @SecurityRequirement(name = "session-cookie")

@@ -7,7 +7,7 @@ import io.minio.messages.DeleteRequest;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.cloudstorage.dto.download.DownloadedFile;
+import org.example.cloudstorage.dto.download.DownloadedResource;
 import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.FileResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
@@ -22,9 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -90,6 +90,7 @@ public class MinioService {
                 }
             }
 
+            assert statObjectResponse != null;
             return new FileResponse(
                     getPath(path),
                     getName(path),
@@ -143,7 +144,15 @@ public class MinioService {
         }
     }
 
-    public DownloadedFile downloadFile(String path) throws MinioException {
+    public DownloadedResource downloadedResource(String path) throws MinioException, IOException {
+        if (path.endsWith("/")) {
+            return downloadDirectory(path);
+        } else {
+            return downloadFile(path);
+        }
+    }
+
+    private DownloadedResource downloadFile(String path) throws MinioException {
 
         ifPathInvalidThrowException(path);
         String fullPath = getUserPrefix() + path;
@@ -153,22 +162,22 @@ public class MinioService {
                         .bucket(bucketName)
                         .object(fullPath)
                         .build());
-        return new DownloadedFile(getName(path), stream);
+        return new DownloadedResource(getName(path), stream);
 
     }
 
-    public void downloadDirectory(String path, OutputStream outputStream) throws MinioException, IOException {
+    private DownloadedResource downloadDirectory(String path) throws MinioException, IOException {
 
         ifPathInvalidThrowException(path);
         String fullPath = getUserPrefix() + path;
-        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
 
         var results = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(bucketName)
                 .prefix(fullPath)
                 .recursive(true)
                 .build());
-
 
         for (var itemResult : results) {
             var object = minioClient.getObject(GetObjectArgs.builder()
@@ -184,6 +193,11 @@ public class MinioService {
             zipOutputStream.closeEntry();
         }
         zipOutputStream.close();
+        var byteArray = byteArrayOutputStream.toByteArray();
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+        var name = getName(path);
+        name = name.substring(0, name.length() - 1);
+        return new DownloadedResource(name + ".zip", byteArrayInputStream);
     }
 
     public ResourceResponse moveResource(String from, String to) throws MinioException {
