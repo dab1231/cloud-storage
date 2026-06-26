@@ -2,6 +2,7 @@ package org.example.cloudstorage.resolver;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 
@@ -11,7 +12,7 @@ public class CustomResourceResolver extends PathResourceResolver {
 
     @Override
     @Nullable
-    protected org.springframework.core.io.Resource getResource(
+    protected Resource getResource(
             @NonNull String resourcePath, org.springframework.core.io.@NonNull Resource location)
             throws IOException {
         var resource = super.getResource(resourcePath, location);

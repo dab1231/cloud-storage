@@ -6,7 +6,7 @@ import io.minio.errors.MinioException;
 import org.example.cloudstorage.dto.request.UserRequest;
 import org.example.cloudstorage.exception.UserAlreadyExistsException;
 import org.example.cloudstorage.repository.UserRepository;
-import org.example.cloudstorage.service.UserService;
+import org.example.cloudstorage.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +30,7 @@ class UserServiceTest {
     UserRepository userRepository;
 
     @Autowired
-    UserService userService;
+    UserServiceImpl userService;
 
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
 

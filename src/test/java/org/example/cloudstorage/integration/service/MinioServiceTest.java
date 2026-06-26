@@ -11,7 +11,7 @@ import org.example.cloudstorage.dto.response.FileResponse;
 import org.example.cloudstorage.entity.Role;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.example.cloudstorage.security.UserDetailsDto;
-import org.example.cloudstorage.service.MinioService;
+import org.example.cloudstorage.service.impl.MinioServiceImpl;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,7 +42,7 @@ public class MinioServiceTest {
             new MockMultipartFile("file", "test2", "text/plain", "test content2".getBytes());
 
     @Autowired
-    MinioService minioService;
+    MinioServiceImpl minioService;
     @Autowired
     MinioClient minioClient;
 

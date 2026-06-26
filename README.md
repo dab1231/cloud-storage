@@ -36,20 +36,20 @@ http://localhost:8080/swagger-ui.html
 
 Краткая сводка:
 
-| Метод  | Путь                       | Описание                                  |
-|--------|----------------------------|--------------------------------------------|
-| POST   | `/api/auth/sign-up`        | Регистрация                                |
-| POST   | `/api/auth/sign-in`        | Вход                                       |
-| POST   | `/api/auth/sign-out`       | Выход                                       |
-| GET    | `/api/user/me`             | Текущий пользователь                       |
-| GET    | `/api/resource?path=`      | Информация о ресурсе                       |
-| DELETE | `/api/resource?path=`      | Удаление ресурса                           |
-| GET    | `/api/resource/download?path=` | Скачать файл / zip-архив папки         |
-| GET    | `/api/resource/move?from=&to=` | Переместить / переименовать ресурс     |
-| GET    | `/api/resource/search?query=`  | Поиск ресурсов                         |
-| POST   | `/api/resource?path=`      | Загрузка файлов (multipart)                |
-| GET    | `/api/directory?path=`     | Список ресурсов в папке                    |
-| POST   | `/api/directory?path=`     | Создание папки                             |
+| Метод  | Путь                           | Описание                           |
+|--------|--------------------------------|------------------------------------|
+| POST   | `/api/auth/sign-up`            | Регистрация                        |
+| POST   | `/api/auth/sign-in`            | Вход                               |
+| POST   | `/api/auth/sign-out`           | Выход                              |
+| GET    | `/api/user/me`                 | Текущий пользователь               |
+| GET    | `/api/resource?path=`          | Информация о ресурсе               |
+| DELETE | `/api/resource?path=`          | Удаление ресурса                   |
+| GET    | `/api/resource/download?path=` | Скачать файл / zip-архив папки     |
+| GET    | `/api/resource/move?from=&to=` | Переместить / переименовать ресурс |
+| GET    | `/api/resource/search?query=`  | Поиск ресурсов                     |
+| POST   | `/api/resource?path=`          | Загрузка файлов (multipart)        |
+| GET    | `/api/directory?path=`         | Список ресурсов в папке            |
+| POST   | `/api/directory?path=`         | Создание папки                     |
 
 Формат ошибок единый для всех эндпоинтов: `{"message": "Текст ошибки"}`.
 
@@ -94,7 +94,8 @@ http://localhost:8080/swagger-ui.html
 2. На сервере: установить JRE 21 и Docker
 3. Скопировать на сервер `compose.yml`, `.env` и собранный jar
 4. Поднять инфраструктуру: `docker compose up -d`
-5. Запустить jar (рекомендуется — через systemd-сервис, чтобы приложение переживало переподключение по SSH и перезагрузку сервера)
+5. Запустить jar (рекомендуется — через systemd-сервис, чтобы приложение переживало переподключение по SSH и
+   перезагрузку сервера)
 
 Приложение доступно по адресу `http://<server_ip>:8080/`.
 
