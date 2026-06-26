@@ -12,13 +12,11 @@ import org.example.cloudstorage.enums.ResourceType;
 import org.example.cloudstorage.enums.Role;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
 import org.example.cloudstorage.security.UserDetailsDto;
-import org.example.cloudstorage.service.impl.MinioServiceImpl;
+import org.example.cloudstorage.service.MinioService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MinIOContainer;
@@ -43,7 +41,7 @@ public class MinioServiceTest {
             new MockMultipartFile("file", "test2", "text/plain", "test content2".getBytes());
 
     @Autowired
-    MinioServiceImpl minioService;
+    MinioService minioService;
     @Autowired
     MinioClient minioClient;
 
@@ -54,14 +52,6 @@ public class MinioServiceTest {
         dynamicPropertyRegistry.add("minio.url", minIOContainer::getS3URL);
         dynamicPropertyRegistry.add("minio.access-key", minIOContainer::getUserName);
         dynamicPropertyRegistry.add("minio.secret-key", minIOContainer::getPassword);
-    }
-
-    void loginAs(UserDetailsDto user) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-        var context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authenticationToken);
-        SecurityContextHolder.setContext(context);
     }
 
     @BeforeAll
@@ -83,7 +73,6 @@ public class MinioServiceTest {
     @BeforeEach
     void beforeEach() throws MinioException {
         minioService.createUserDirectory(minioService.getUserDirectoryName(user1.getId()));
-        loginAs(user1);
     }
 
     @AfterEach
@@ -100,7 +89,6 @@ public class MinioServiceTest {
         var removed =
                 minioClient.removeObjects(
                         RemoveObjectsArgs.builder().bucket(bucketName).objects(deleteList).build());
-        SecurityContextHolder.clearContext();
 
         for (var item : removed) {
             // обязательная итерация из за lazy remove object
@@ -110,9 +98,10 @@ public class MinioServiceTest {
     @Test
     void uploadFileAppearsInUserRootFolder() throws MinioException, IOException {
 
-        minioService.uploadFiles(List.of(multipartFile1), "");
+        minioService.uploadFiles(List.of(multipartFile1), "", user1.getId());
 
-        var info = (FileResponse) minioService.getInfo(multipartFile1.getOriginalFilename());
+        var info =
+                (FileResponse) minioService.getInfo(multipartFile1.getOriginalFilename(), user1.getId());
         assertThat(info.path()).isEqualTo("");
         assertThat(info.name()).isEqualTo("test1");
         assertThat(info.type()).isEqualTo(ResourceType.FILE);
@@ -122,36 +111,36 @@ public class MinioServiceTest {
     @Test
     void renameFile() throws MinioException, IOException {
 
-        minioService.uploadFiles(List.of(multipartFile1), "");
+        minioService.uploadFiles(List.of(multipartFile1), "", user1.getId());
 
-        minioService.moveResource(multipartFile1.getOriginalFilename(), "testname");
-        var info = (FileResponse) minioService.getInfo("testname");
+        minioService.moveResource(multipartFile1.getOriginalFilename(), "testname", user1.getId());
+        var info = (FileResponse) minioService.getInfo("testname", user1.getId());
         assertThat(info.name()).isEqualTo("testname");
 
         Assertions.assertThrows(
                 ResourceNotFoundException.class,
-                () -> minioService.getInfo(multipartFile1.getOriginalFilename()));
+                () -> minioService.getInfo(multipartFile1.getOriginalFilename(), user1.getId()));
     }
 
     @Test
     void deleteFile() throws MinioException, IOException {
 
-        minioService.uploadFiles(List.of(multipartFile1), "");
-        minioService.deleteResource(multipartFile1.getOriginalFilename());
+        minioService.uploadFiles(List.of(multipartFile1), "", user1.getId());
+        minioService.deleteResource(multipartFile1.getOriginalFilename(), user1.getId());
 
         Assertions.assertThrows(
                 ResourceNotFoundException.class,
-                () -> minioService.getInfo(multipartFile1.getOriginalFilename()));
+                () -> minioService.getInfo(multipartFile1.getOriginalFilename(), user1.getId()));
     }
 
     @Test
     void renameDirectory() throws MinioException, IOException {
 
-        minioService.uploadFiles(List.of(multipartFile1, multipartFile2), "testfolder/");
+        minioService.uploadFiles(List.of(multipartFile1, multipartFile2), "testfolder/", user1.getId());
 
-        minioService.moveResource("testfolder/", "folder/");
-        var info = (DirectoryResponse) minioService.getInfo("folder/");
-        var resourcesInDirectory = minioService.getResourcesInDirectory("folder/");
+        minioService.moveResource("testfolder/", "folder/", user1.getId());
+        var info = (DirectoryResponse) minioService.getInfo("folder/", user1.getId());
+        var resourcesInDirectory = minioService.getResourcesInDirectory("folder/", user1.getId());
 
         assertThat(info.name()).isEqualTo("folder/");
         assertThat(info.path()).isEqualTo("");
@@ -163,16 +152,16 @@ public class MinioServiceTest {
         assertThat(file2.name()).isEqualTo(multipartFile2.getOriginalFilename());
 
         Assertions.assertThrows(
-                ResourceNotFoundException.class, () -> minioService.getInfo("testfolder/"));
+                ResourceNotFoundException.class, () -> minioService.getInfo("testfolder/", user1.getId()));
     }
 
     @Test
     void deleteDirectory() throws MinioException, IOException {
-        minioService.uploadFiles(List.of(multipartFile1, multipartFile2), "testfolder/");
+        minioService.uploadFiles(List.of(multipartFile1, multipartFile2), "testfolder/", user1.getId());
 
-        minioService.deleteResource("testfolder/");
+        minioService.deleteResource("testfolder/", user1.getId());
         Assertions.assertThrows(
-                ResourceNotFoundException.class, () -> minioService.getInfo("testfolder/"));
+                ResourceNotFoundException.class, () -> minioService.getInfo("testfolder/", user1.getId()));
     }
 
     @Nested
@@ -185,29 +174,24 @@ public class MinioServiceTest {
 
         @Test
         void userCannotAccessAnotherUsersFile() throws MinioException, IOException {
-            loginAs(user1);
-            minioService.uploadFiles(List.of(multipartFile1), "");
+            minioService.uploadFiles(List.of(multipartFile1), "", user1.getId());
 
-            loginAs(user2);
             Assertions.assertThrows(
                     ResourceNotFoundException.class,
-                    () -> minioService.getInfo(multipartFile1.getOriginalFilename()));
+                    () -> minioService.getInfo(multipartFile1.getOriginalFilename(), user2.getId()));
         }
 
         @Test
         void searchReturnsOwnFile() throws MinioException, IOException {
-            loginAs(user2);
-            minioService.uploadFiles(List.of(multipartFile2), "");
-            loginAs(user1);
-            minioService.uploadFiles(List.of(multipartFile1), "");
+            minioService.uploadFiles(List.of(multipartFile2), "", user2.getId());
+            minioService.uploadFiles(List.of(multipartFile1), "", user1.getId());
 
-            var user1Resources = minioService.searchResources("test");
+            var user1Resources = minioService.searchResources("test", user1.getId());
             assertThat(user1Resources.size()).isEqualTo(1);
             var user1FileResponse = (FileResponse) user1Resources.getFirst();
             assertThat(user1FileResponse.name()).isEqualTo("test1");
 
-            loginAs(user2);
-            var user2Resources = minioService.searchResources("test");
+            var user2Resources = minioService.searchResources("test", user2.getId());
             assertThat(user2Resources.size()).isEqualTo(1);
             var user2FileResponse = (FileResponse) user2Resources.getFirst();
             assertThat(user2FileResponse.name()).isEqualTo("test2");

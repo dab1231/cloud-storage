@@ -17,10 +17,8 @@ import org.example.cloudstorage.exception.InvalidBodyException;
 import org.example.cloudstorage.exception.InvalidPathException;
 import org.example.cloudstorage.exception.ResourceAlreadyExistsException;
 import org.example.cloudstorage.exception.ResourceNotFoundException;
-import org.example.cloudstorage.security.UserDetailsDto;
 import org.example.cloudstorage.service.MinioService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -56,11 +54,11 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public ResourceResponse getInfo(String path) throws MinioException {
+    public ResourceResponse getInfo(String path, Long id) throws MinioException {
 
         ifPathInvalidThrowException(path);
 
-        String fullPath = getUserPrefix() + path;
+        String fullPath = getUserDirectoryName(id) + path;
 
         if (path.endsWith("/")) {
 
@@ -87,16 +85,17 @@ public class MinioServiceImpl implements MinioService {
             }
 
             assert statObjectResponse != null;
-            return new FileResponse(getPath(path), getName(path), statObjectResponse.size(), ResourceType.FILE);
+            return new FileResponse(
+                    getPath(path), getName(path), statObjectResponse.size(), ResourceType.FILE);
         }
     }
 
     @Override
-    public void deleteResource(String path) throws MinioException {
+    public void deleteResource(String path, Long id) throws MinioException {
 
         ifPathInvalidThrowException(path);
 
-        String fullPath = getUserPrefix() + path;
+        String fullPath = getUserDirectoryName(id) + path;
 
         if (path.endsWith("/")) {
 
@@ -127,7 +126,7 @@ public class MinioServiceImpl implements MinioService {
 
         } else {
 
-            getInfo(path);
+            getInfo(path, id);
 
             minioClient.removeObject(
                     RemoveObjectArgs.builder().bucket(bucketName).object(fullPath).build());
@@ -135,28 +134,30 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public DownloadedResource downloadedResource(String path) throws MinioException, IOException {
+    public DownloadedResource downloadedResource(String path, Long id)
+            throws MinioException, IOException {
         if (path.endsWith("/")) {
-            return downloadDirectory(path);
+            return downloadDirectory(path, id);
         } else {
-            return downloadFile(path);
+            return downloadFile(path, id);
         }
     }
 
-    private DownloadedResource downloadFile(String path) throws MinioException {
+    private DownloadedResource downloadFile(String path, Long id) throws MinioException {
 
         ifPathInvalidThrowException(path);
-        String fullPath = getUserPrefix() + path;
+        String fullPath = getUserDirectoryName(id) + path;
 
         InputStream stream =
                 minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(fullPath).build());
         return new DownloadedResource(getName(path), stream);
     }
 
-    private DownloadedResource downloadDirectory(String path) throws MinioException, IOException {
+    private DownloadedResource downloadDirectory(String path, Long id)
+            throws MinioException, IOException {
 
         ifPathInvalidThrowException(path);
-        String fullPath = getUserPrefix() + path;
+        String fullPath = getUserDirectoryName(id) + path;
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
 
@@ -188,11 +189,11 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public ResourceResponse moveResource(String from, String to) throws MinioException {
+    public ResourceResponse moveResource(String from, String to, Long id) throws MinioException {
 
         ifPathInvalidThrowException(from, to);
-        String fullPathTo = getUserPrefix() + to;
-        String fullPathFrom = getUserPrefix() + from;
+        String fullPathTo = getUserDirectoryName(id) + to;
+        String fullPathFrom = getUserDirectoryName(id) + from;
 
         if (from.endsWith("/")) {
             var results =
@@ -244,17 +245,17 @@ public class MinioServiceImpl implements MinioService {
                             .source(SourceObject.builder().bucket(bucketName).object(fullPathFrom).build())
                             .build());
         }
-        deleteResource(from);
-        return getInfo(to);
+        deleteResource(from, id);
+        return getInfo(to, id);
     }
 
     @Override
-    public DirectoryResponse createDirectory(String path) throws MinioException {
+    public DirectoryResponse createDirectory(String path, Long id) throws MinioException {
         if (path.isBlank() || path.contains("..") || !path.endsWith("/")) {
             throw new InvalidPathException(
                     "Directory path must not be blank, must not contain '..', and must end with '/'");
         }
-        String fullPath = getUserPrefix() + path;
+        String fullPath = getUserDirectoryName(id) + path;
 
         var results =
                 minioClient.listObjects(
@@ -279,7 +280,7 @@ public class MinioServiceImpl implements MinioService {
                                 new ByteArrayInputStream(new byte[]{}), OBJECT_SIZE, PART_SIZE)
                         .build());
 
-        return (DirectoryResponse) getInfo(path);
+        return (DirectoryResponse) getInfo(path, id);
     }
 
     @Override
@@ -291,7 +292,7 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public List<ResourceResponse> searchResources(String query) throws MinioException {
+    public List<ResourceResponse> searchResources(String query, Long id) throws MinioException {
         ifPathInvalidThrowException(query);
 
         var results =
@@ -299,28 +300,28 @@ public class MinioServiceImpl implements MinioService {
                         ListObjectsArgs.builder()
                                 .bucket(bucketName)
                                 .recursive(true)
-                                .prefix(getUserPrefix())
+                                .prefix(getUserDirectoryName(id))
                                 .build());
         List<ResourceResponse> resultList = new ArrayList<>();
 
         for (var itemResult : results) {
             if (getName(itemResult.get().objectName().toLowerCase(Locale.ROOT))
                     .contains(query.toLowerCase(Locale.ROOT))) {
-                addResourceToList(resultList, itemResult);
+                addResourceToList(resultList, itemResult, id);
             }
         }
         return resultList;
     }
 
     @Override
-    public List<ResourceResponse> uploadFiles(List<MultipartFile> files, String path)
+    public List<ResourceResponse> uploadFiles(List<MultipartFile> files, String path, Long id)
             throws MinioException, IOException {
 
         if (path.contains("..") || (!path.isBlank() && !path.endsWith("/"))) {
             throw new InvalidPathException(
                     "Directory path must not be blank, must not contain '..', and must end with '/'");
         }
-        String fullPath = getUserPrefix() + path;
+        String fullPath = getUserDirectoryName(id) + path;
 
         if (files.isEmpty()) {
             throw new InvalidBodyException("Invalid request body");
@@ -349,20 +350,22 @@ public class MinioServiceImpl implements MinioService {
                             .build());
 
             resourceResponses.add(
-                    new FileResponse(getPath(responsePath), getName(responsePath), file.getSize(), ResourceType.FILE));
+                    new FileResponse(
+                            getPath(responsePath), getName(responsePath), file.getSize(), ResourceType.FILE));
         }
 
         return resourceResponses;
     }
 
     @Override
-    public List<ResourceResponse> getResourcesInDirectory(String path) throws MinioException {
+    public List<ResourceResponse> getResourcesInDirectory(String path, Long id)
+            throws MinioException {
 
         if (path.contains("..") || (!path.isBlank() && !path.endsWith("/"))) {
             throw new InvalidPathException(
                     "Directory path must not be blank, must not contain '..', and must end with '/'");
         }
-        String fullPath = getUserPrefix() + path;
+        String fullPath = getUserDirectoryName(id) + path;
 
         var results =
                 minioClient.listObjects(
@@ -377,18 +380,20 @@ public class MinioServiceImpl implements MinioService {
         for (var itemResult : results) {
             if (itemResult.get().objectName().equals(fullPath)) continue;
 
-            addResourceToList(resultList, itemResult);
+            addResourceToList(resultList, itemResult, id);
         }
 
         return resultList;
     }
 
-    private void addResourceToList(List<ResourceResponse> resultList, Result<Item> itemResult) throws MinioException {
+    private void addResourceToList(
+            List<ResourceResponse> resultList, Result<Item> itemResult, Long id) throws MinioException {
         var itemPath = itemResult.get().objectName();
-        itemPath = itemPath.substring(getUserPrefix().length());
+        itemPath = itemPath.substring(getUserDirectoryName(id).length());
 
         if (itemPath.endsWith("/")) {
-            resultList.add(new DirectoryResponse(getPath(itemPath), getName(itemPath), ResourceType.DIRECTORY));
+            resultList.add(
+                    new DirectoryResponse(getPath(itemPath), getName(itemPath), ResourceType.DIRECTORY));
         } else {
             resultList.add(
                     new FileResponse(
@@ -441,11 +446,5 @@ public class MinioServiceImpl implements MinioService {
     @Override
     public String getUserDirectoryName(Long id) {
         return "user-" + id + "-files/";
-    }
-
-    private String getUserPrefix() {
-        var principal =
-                (UserDetailsDto) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return getUserDirectoryName(principal.getId());
     }
 }

@@ -87,6 +87,7 @@ class UserServiceTest {
         var user = new UserRequest(USERNAME, PASSWORD);
         userService.saveUserAndCreateDirectory(user);
 
-        assertThrows(UserAlreadyExistsException.class, () -> userService.saveUserAndCreateDirectory(user));
+        assertThrows(
+                UserAlreadyExistsException.class, () -> userService.saveUserAndCreateDirectory(user));
     }
 }

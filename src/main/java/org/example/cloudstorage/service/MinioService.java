@@ -11,24 +11,24 @@ import java.util.List;
 
 public interface MinioService {
 
-    ResourceResponse getInfo(String path) throws MinioException;
+    ResourceResponse getInfo(String path, Long id) throws MinioException;
 
-    void deleteResource(String path) throws MinioException;
+    void deleteResource(String path, Long id) throws MinioException;
 
-    DownloadedResource downloadedResource(String path) throws MinioException, IOException;
+    DownloadedResource downloadedResource(String path, Long id) throws MinioException, IOException;
 
-    ResourceResponse moveResource(String from, String to) throws MinioException;
+    ResourceResponse moveResource(String from, String to, Long id) throws MinioException;
 
-    DirectoryResponse createDirectory(String path) throws MinioException;
+    DirectoryResponse createDirectory(String path, Long id) throws MinioException;
 
     void createUserDirectory(String userDirectoryName) throws MinioException;
 
-    List<ResourceResponse> searchResources(String query) throws MinioException;
+    List<ResourceResponse> searchResources(String query, Long id) throws MinioException;
 
-    List<ResourceResponse> uploadFiles(List<MultipartFile> files, String path)
+    List<ResourceResponse> uploadFiles(List<MultipartFile> files, String path, Long id)
             throws MinioException, IOException;
 
-    List<ResourceResponse> getResourcesInDirectory(String path) throws MinioException;
+    List<ResourceResponse> getResourcesInDirectory(String path, Long id) throws MinioException;
 
     String getUserDirectoryName(Long id);
 }

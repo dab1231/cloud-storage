@@ -37,5 +37,4 @@ public class AuthServiceImpl implements AuthService {
         log.info("User with login {} was authorized", userRequest.username());
         return new UserResponse(userRequest.username());
     }
-
 }

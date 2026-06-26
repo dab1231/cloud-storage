@@ -7,8 +7,7 @@ import org.example.cloudstorage.dto.response.UserResponse;
 
 public interface AuthService {
 
-    UserResponse register(UserRequest userRequest, HttpServletRequest request)
-            throws MinioException;
+    UserResponse register(UserRequest userRequest, HttpServletRequest request) throws MinioException;
 
     UserResponse login(UserRequest userRequest, HttpServletRequest request);
 }

@@ -55,7 +55,8 @@ public class SecurityConfiguration {
                                 logout
                                         .logoutUrl("/api/auth/sign-out")
                                         .logoutSuccessHandler(
-                                                (request, response, authentication) -> response.setStatus(HttpStatus.NO_CONTENT.value()))
+                                                (request, response, authentication) ->
+                                                        response.setStatus(HttpStatus.NO_CONTENT.value()))
                                         .deleteCookies("SESSION"));
 
         return http.build();

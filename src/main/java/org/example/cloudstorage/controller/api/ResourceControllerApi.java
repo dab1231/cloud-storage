@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 
 @Tag(name = "Resource controller", description = "Позволяет производить манипуляции над ресурсами")
@@ -70,7 +71,8 @@ public interface ResourceControllerApi {
     })
     @GetMapping("/resource")
     ResponseEntity<ResourceResponse> getInfo(
-            @Parameter(description = "путь к ресурсу", required = true) @RequestParam String path)
+            @Parameter(description = "путь к ресурсу", required = true) @RequestParam String path,
+            Principal principal)
             throws MinioException;
 
     @SecurityRequirement(name = "session-cookie")
@@ -109,7 +111,8 @@ public interface ResourceControllerApi {
     @DeleteMapping("/resource")
     ResponseEntity<Object> deleteResource(
             @Parameter(description = "путь к ресурсу для удаления", required = true) @RequestParam
-            String path)
+            String path,
+            Principal principal)
             throws MinioException;
 
     @SecurityRequirement(name = "session-cookie")
@@ -166,7 +169,8 @@ public interface ResourceControllerApi {
             @Parameter(description = "откуда переместить/переименовать", required = true) @RequestParam
             String from,
             @Parameter(description = "куда переместить/переименовать", required = true) @RequestParam
-            String to)
+            String to,
+            Principal principal)
             throws MinioException;
 
     @SecurityRequirement(name = "session-cookie")
@@ -217,7 +221,8 @@ public interface ResourceControllerApi {
     })
     @PostMapping("/directory")
     ResponseEntity<DirectoryResponse> createDirectory(
-            @Parameter(description = "путь к новой папке", required = true) @RequestParam String path)
+            @Parameter(description = "путь к новой папке", required = true) @RequestParam String path,
+            Principal principal)
             throws MinioException;
 
     @SecurityRequirement(name = "session-cookie")
@@ -259,7 +264,8 @@ public interface ResourceControllerApi {
     })
     @GetMapping("/resource/search")
     ResponseEntity<List<ResourceResponse>> searchResources(
-            @Parameter(description = "поисковой запрос", required = true) @RequestParam String query)
+            @Parameter(description = "поисковой запрос", required = true) @RequestParam String query,
+            Principal principal)
             throws MinioException;
 
     @SecurityRequirement(name = "session-cookie")
@@ -308,7 +314,8 @@ public interface ResourceControllerApi {
     })
     @GetMapping("/directory")
     ResponseEntity<List<ResourceResponse>> getResourcesInDirectory(
-            @Parameter(description = "путь к папке", required = true) @RequestParam String path)
+            @Parameter(description = "путь к папке", required = true) @RequestParam String path,
+            Principal principal)
             throws MinioException;
 
     @SecurityRequirement(name = "session-cookie")
@@ -353,7 +360,8 @@ public interface ResourceControllerApi {
     @GetMapping("/resource/download")
     ResponseEntity<StreamingResponseBody> downloadResource(
             @Parameter(description = "путь к ресурсу для скачивания", required = true) @RequestParam
-            String path)
+            String path,
+            Principal principal)
             throws MinioException, IOException;
 
     @SecurityRequirement(name = "session-cookie")
@@ -400,6 +408,7 @@ public interface ResourceControllerApi {
             @RequestParam("object") List<MultipartFile> files,
             @Parameter(description = "путь к папке в которую загружаем ресурс(ы)", required = true)
             @RequestParam
-            String path)
+            String path,
+            Principal principal)
             throws MinioException, IOException;
 }
