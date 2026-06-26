@@ -21,39 +21,92 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/auth")
 public interface AuthControllerApi {
 
-    @Operation(summary = "Зарегистрировать пользователя и добавить его в бд")
-    @ApiResponses({
-            @ApiResponse(responseCode = "500", description = "Неизвестная ошибка", content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Ошибка валидации", content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "409", description = "Username занят", content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "201", description = "Пользователь создан", content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = UserResponse.class))),
-    })
-    @PostMapping("/sign-up")
-    ResponseEntity<UserResponse> registration(@RequestBody(description = "Данные пользователя из формы",
-                                                      content = @Content(mediaType = "application/json",
-                                                              schema = @Schema(implementation = UserRequest.class)))
-                                              @org.springframework.web.bind.annotation.RequestBody @Validated UserRequest userRequest,
-                                              HttpServletRequest request) throws MinioException;
+  @Operation(summary = "Зарегистрировать пользователя и добавить его в бд")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "500",
+        description = "Неизвестная ошибка",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Ошибка валидации",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @ApiResponse(
+        responseCode = "409",
+        description = "Username занят",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @ApiResponse(
+        responseCode = "201",
+        description = "Пользователь создан",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = UserResponse.class))),
+  })
+  @PostMapping("/sign-up")
+  ResponseEntity<UserResponse> registration(
+      @RequestBody(
+              description = "Данные пользователя из формы",
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = UserRequest.class)))
+          @org.springframework.web.bind.annotation.RequestBody
+          @Validated
+          UserRequest userRequest,
+      HttpServletRequest request)
+      throws MinioException;
 
-    @Operation(summary = "Логин пользователя")
-    @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "Ошибка валидации", content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Неверные данные", content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Неизвестная ошибка", content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "200", description = "Успешно", content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = UserResponse.class)))
-    })
-    @PostMapping("/sign-in")
-    ResponseEntity<UserResponse> login(@RequestBody(description = "Данные пользователя с формы",
-                                               content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserRequest.class)))
-                                       @org.springframework.web.bind.annotation.RequestBody @Validated UserRequest userRequest,
-                                       HttpServletRequest request);
-
+  @Operation(summary = "Логин пользователя")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "400",
+        description = "Ошибка валидации",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Неверные данные",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @ApiResponse(
+        responseCode = "500",
+        description = "Неизвестная ошибка",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class))),
+    @ApiResponse(
+        responseCode = "200",
+        description = "Успешно",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = UserResponse.class)))
+  })
+  @PostMapping("/sign-in")
+  ResponseEntity<UserResponse> login(
+      @RequestBody(
+              description = "Данные пользователя с формы",
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = UserRequest.class)))
+          @org.springframework.web.bind.annotation.RequestBody
+          @Validated
+          UserRequest userRequest,
+      HttpServletRequest request);
 }
