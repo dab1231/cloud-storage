@@ -17,31 +17,31 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-  private final UserRepository userRepository;
-  private final PasswordEncoder passwordEncoder;
-  private final MinioService minioService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final MinioService minioService;
 
-  public UserResponse registration(UserRequest userRequest) throws MinioException {
+    public UserResponse registration(UserRequest userRequest) throws MinioException {
 
-    userRepository
-        .findByUsername(userRequest.username())
-        .ifPresent(
-            user -> {
-              throw new UserAlreadyExistsException(
-                  "User with username " + userRequest.username() + " already exists");
-            });
+        userRepository
+                .findByUsername(userRequest.username())
+                .ifPresent(
+                        user -> {
+                            throw new UserAlreadyExistsException(
+                                    "User with username " + userRequest.username() + " already exists");
+                        });
 
-    var user =
-        User.builder()
-            .username(userRequest.username())
-            .password(passwordEncoder.encode(userRequest.password()))
-            .role(Role.USER)
-            .build();
+        var user =
+                User.builder()
+                        .username(userRequest.username())
+                        .password(passwordEncoder.encode(userRequest.password()))
+                        .role(Role.USER)
+                        .build();
 
-    var savedUser = userRepository.save(user);
+        var savedUser = userRepository.save(user);
 
-    minioService.createUserDirectory(minioService.getUserDirectoryName(savedUser.getId()));
+        minioService.createUserDirectory(minioService.getUserDirectoryName(savedUser.getId()));
 
-    return UserResponse.builder().username(savedUser.getUsername()).build();
-  }
+        return UserResponse.builder().username(savedUser.getUsername()).build();
+    }
 }

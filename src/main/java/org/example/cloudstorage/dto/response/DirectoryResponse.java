@@ -1,4 +1,5 @@
 package org.example.cloudstorage.dto.response;
 
 public record DirectoryResponse(String path, String name, String type)
-    implements ResourceResponse {}
+        implements ResourceResponse {
+}

@@ -18,52 +18,52 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-  private final CustomAuthEntryPoint customAuthEntryPoint;
-  private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthEntryPoint customAuthEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(
-            (requests) ->
-                requests
-                    .requestMatchers("/api/auth/**")
-                    .permitAll()
-                    .requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
-                    .requestMatchers(
-                        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs", "/v3/api-docs/**")
-                    .permitAll()
-                    .requestMatchers("/index.html", "/", "/assets/**", "/config.js")
-                    .permitAll()
-                    .requestMatchers("/api/**")
-                    .authenticated()
-                    .anyRequest()
-                    .permitAll())
-        .exceptionHandling(
-            exceptionHandling ->
-                exceptionHandling
-                    .authenticationEntryPoint(customAuthEntryPoint)
-                    .accessDeniedHandler(customAccessDeniedHandler))
-        .logout(
-            logout ->
-                logout
-                    .logoutUrl("/api/auth/sign-out")
-                    .logoutSuccessHandler(
-                        (request, response, authentication) -> response.setStatus(HttpStatus.NO_CONTENT.value()))
-                    .deleteCookies("SESSION"));
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(
+                        (requests) ->
+                                requests
+                                        .requestMatchers("/api/auth/**")
+                                        .permitAll()
+                                        .requestMatchers("/api/admin/**")
+                                        .hasRole("ADMIN")
+                                        .requestMatchers(
+                                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs", "/v3/api-docs/**")
+                                        .permitAll()
+                                        .requestMatchers("/index.html", "/", "/assets/**", "/config.js")
+                                        .permitAll()
+                                        .requestMatchers("/api/**")
+                                        .authenticated()
+                                        .anyRequest()
+                                        .permitAll())
+                .exceptionHandling(
+                        exceptionHandling ->
+                                exceptionHandling
+                                        .authenticationEntryPoint(customAuthEntryPoint)
+                                        .accessDeniedHandler(customAccessDeniedHandler))
+                .logout(
+                        logout ->
+                                logout
+                                        .logoutUrl("/api/auth/sign-out")
+                                        .logoutSuccessHandler(
+                                                (request, response, authentication) -> response.setStatus(HttpStatus.NO_CONTENT.value()))
+                                        .deleteCookies("SESSION"));
 
-    return http.build();
-  }
+        return http.build();
+    }
 
-  @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
-      throws Exception {
-    return config.getAuthenticationManager();
-  }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+            throws Exception {
+        return config.getAuthenticationManager();
+    }
 }

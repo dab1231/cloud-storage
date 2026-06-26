@@ -9,15 +9,16 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-    info =
+        info =
         @Info(
-            title = "Cloud storage app",
-            description =
-                "Многопользовательское файловое облако. Пользователи сервиса могут использовать его для загрузки и хранения файлов.",
-            version = "1.0"))
+                title = "Cloud storage app",
+                description =
+                        "Многопользовательское файловое облако. Пользователи сервиса могут использовать его для загрузки и хранения файлов.",
+                version = "1.0"))
 @SecurityScheme(
-    name = "session-cookie",
-    type = SecuritySchemeType.APIKEY,
-    in = SecuritySchemeIn.COOKIE,
-    paramName = "SESSION")
-public class OpenApiConfiguration {}
+        name = "session-cookie",
+        type = SecuritySchemeType.APIKEY,
+        in = SecuritySchemeIn.COOKIE,
+        paramName = "SESSION")
+public class OpenApiConfiguration {
+}

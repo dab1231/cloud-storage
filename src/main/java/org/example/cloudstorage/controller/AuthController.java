@@ -15,22 +15,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController implements AuthControllerApi {
 
-  private final AuthService authService;
+    private final AuthService authService;
 
-  @Override
-  public ResponseEntity<UserResponse> registration(
-      UserRequest userRequest, HttpServletRequest request) throws MinioException {
+    @Override
+    public ResponseEntity<UserResponse> registration(
+            UserRequest userRequest, HttpServletRequest request) throws MinioException {
 
-    var userResponse = authService.registration(userRequest, request);
+        var userResponse = authService.registration(userRequest, request);
 
-    return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
-  }
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+    }
 
-  @Override
-  public ResponseEntity<UserResponse> login(UserRequest userRequest, HttpServletRequest request) {
+    @Override
+    public ResponseEntity<UserResponse> login(UserRequest userRequest, HttpServletRequest request) {
 
-    var userResponse = authService.login(userRequest, request);
+        var userResponse = authService.login(userRequest, request);
 
-    return ResponseEntity.status(HttpStatus.OK).body(userResponse);
-  }
+        return ResponseEntity.status(HttpStatus.OK).body(userResponse);
+    }
 }
