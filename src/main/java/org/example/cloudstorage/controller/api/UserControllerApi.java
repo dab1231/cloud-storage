@@ -10,10 +10,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.cloudstorage.dto.response.ErrorResponse;
 import org.example.cloudstorage.dto.response.UserResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
 
 @Tag(name = "Get user", description = "Позволяет получить информацию о текущем пользователе")
+@RequestMapping("/api/user")
 public interface UserControllerApi {
 
     @SecurityRequirement(name = "session-cookie")
@@ -26,5 +29,6 @@ public interface UserControllerApi {
             @ApiResponse(responseCode = "200", description = "Успешно", content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = UserResponse.class)))
     })
+    @GetMapping("/me")
     ResponseEntity<UserResponse> getCurrentUser(Principal principal);
 }

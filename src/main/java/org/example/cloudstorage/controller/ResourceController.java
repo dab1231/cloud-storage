@@ -8,7 +8,7 @@ import org.example.cloudstorage.dto.response.DirectoryResponse;
 import org.example.cloudstorage.dto.response.ResourceResponse;
 import org.example.cloudstorage.service.MinioService;
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -17,32 +17,28 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
 public class ResourceController implements ResourceControllerApi {
 
     private final MinioService minioService;
 
-    @GetMapping("/resource")
     @Override
-    public ResponseEntity<ResourceResponse> getInfo(@RequestParam String path) throws MinioException {
+    public ResponseEntity<ResourceResponse> getInfo(String path) throws MinioException {
 
         var info = minioService.getInfo(path);
 
         return new ResponseEntity<>(info, HttpStatus.OK);
     }
 
-    @DeleteMapping("/resource")
     @Override
-    public ResponseEntity<Object> deleteResource(@RequestParam String path) throws MinioException {
+    public ResponseEntity<Object> deleteResource(String path) throws MinioException {
 
         minioService.deleteResource(path);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/resource/download")
     @Override
-    public ResponseEntity<StreamingResponseBody> downloadResource(@RequestParam String path) throws MinioException {
+    public ResponseEntity<StreamingResponseBody> downloadResource(String path) throws MinioException {
 
         if (path.endsWith("/")) {
 
@@ -83,18 +79,16 @@ public class ResourceController implements ResourceControllerApi {
         }
     }
 
-    @GetMapping("/resource/move")
     @Override
-    public ResponseEntity<ResourceResponse> moveResource(@RequestParam String from, @RequestParam String to) throws MinioException {
+    public ResponseEntity<ResourceResponse> moveResource(String from, String to) throws MinioException {
 
         var resourceResponse = minioService.moveResource(from, to);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(resourceResponse);
     }
 
-    @PostMapping("/directory")
     @Override
-    public ResponseEntity<DirectoryResponse> createDirectory(@RequestParam String path) throws MinioException {
+    public ResponseEntity<DirectoryResponse> createDirectory(String path) throws MinioException {
 
         var directory = minioService.createDirectory(path);
 
@@ -102,9 +96,8 @@ public class ResourceController implements ResourceControllerApi {
                 .body(directory);
     }
 
-    @GetMapping("/resource/search")
     @Override
-    public ResponseEntity<List<ResourceResponse>> searchResources(@RequestParam String query) throws MinioException {
+    public ResponseEntity<List<ResourceResponse>> searchResources(String query) throws MinioException {
 
         var resourceResponses = minioService.searchResources(query);
 
@@ -112,9 +105,8 @@ public class ResourceController implements ResourceControllerApi {
                 .body(resourceResponses);
     }
 
-    @PostMapping("/resource")
     @Override
-    public ResponseEntity<List<ResourceResponse>> uploadFiles(@RequestParam("object") List<MultipartFile> files, @RequestParam String path) throws MinioException, IOException {
+    public ResponseEntity<List<ResourceResponse>> uploadFiles(List<MultipartFile> files, String path) throws MinioException, IOException {
 
         var fileResponses = minioService.uploadFiles(files, path);
 
@@ -122,9 +114,8 @@ public class ResourceController implements ResourceControllerApi {
                 .body(fileResponses);
     }
 
-    @GetMapping("/directory")
     @Override
-    public ResponseEntity<List<ResourceResponse>> getResourcesInDirectory(@RequestParam String path) throws MinioException {
+    public ResponseEntity<List<ResourceResponse>> getResourcesInDirectory(String path) throws MinioException {
 
         var resourcesInDirectory = minioService.getResourcesInDirectory(path);
 
