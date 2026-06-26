@@ -21,7 +21,7 @@ public class AuthController implements AuthControllerApi {
     public ResponseEntity<UserResponse> registration(
             UserRequest userRequest, HttpServletRequest request) throws MinioException {
 
-        var userResponse = authService.registration(userRequest, request);
+        var userResponse = authService.register(userRequest, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }

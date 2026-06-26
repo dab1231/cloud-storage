@@ -70,10 +70,10 @@ class UserServiceTest {
     }
 
     @Test
-    void registration() throws MinioException {
+    void saveUserAndCreateDirectory() throws MinioException {
         var user = new UserRequest(USERNAME, PASSWORD);
 
-        var userResponse = userService.registration(user);
+        var userResponse = userService.saveUserAndCreateDirectory(user);
 
         var actualUser = userRepository.findByUsername(userResponse.username());
 
@@ -85,8 +85,8 @@ class UserServiceTest {
     void throwExceptionIfUserAlreadyExists() throws MinioException {
 
         var user = new UserRequest(USERNAME, PASSWORD);
-        userService.registration(user);
+        userService.saveUserAndCreateDirectory(user);
 
-        assertThrows(UserAlreadyExistsException.class, () -> userService.registration(user));
+        assertThrows(UserAlreadyExistsException.class, () -> userService.saveUserAndCreateDirectory(user));
     }
 }

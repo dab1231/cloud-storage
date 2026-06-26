@@ -6,5 +6,5 @@ import org.example.cloudstorage.dto.response.UserResponse;
 
 public interface UserService {
 
-    UserResponse registration(UserRequest userRequest) throws MinioException;
+    UserResponse saveUserAndCreateDirectory(UserRequest userRequest) throws MinioException;
 }

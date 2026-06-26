@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
     private final MinioService minioService;
 
     @Override
-    public UserResponse registration(UserRequest userRequest) throws MinioException {
+    public UserResponse saveUserAndCreateDirectory(UserRequest userRequest) throws MinioException {
 
         userRepository
                 .findByUsername(userRequest.username())
